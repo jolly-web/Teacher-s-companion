@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Register - Grade Tracker</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Inter', sans-serif; background: #f0f3f9; min-height: 100vh; display: flex; align-items: center; justify-content: center; }
+    .register-box { background: white; padding: 48px; border-radius: 16px; box-shadow: 0 8px 24px rgba(0,0,0,0.08); width: 100%; max-width: 400px; }
+    .register-box h1 { color: #1a2744; font-size: 1.5rem; margin-bottom: 8px; }
+    .register-box p { color: #6b7a99; font-size: 0.9rem; margin-bottom: 24px; }
+    label { display: block; font-size: 0.75rem; font-weight: 600; color: #6b7a99; margin-bottom: 4px; margin-top: 16px; }
+    label:first-of-type { margin-top: 0; }
+    input[type="text"], input[type="password"] { width: 100%; padding: 10px 12px; border: 1px solid #d8dff0; border-radius: 7px; font-family: inherit; font-size: 0.9rem; }
+    input:focus { outline: none; border-color: #1a2744; }
+    .btn-register { width: 100%; padding: 12px; background: #1a2744; border: none; border-radius: 7px; font-family: inherit; font-size: 0.9rem; font-weight: 700; color: white; cursor: pointer; margin-top: 24px; }
+    .btn-register:hover { background: #243360; }
+    .login-link { text-align: center; margin-top: 16px; font-size: 0.85rem; color: #6b7a99; }
+    .login-link a { color: #1a2744; font-weight: 600; text-decoration: none; }
+    .login-link a:hover { text-decoration: underline; }
+    #register-msg { margin-top: 12px; font-size: 0.8rem; font-weight: 500; min-height: 20px; }
+    #register-msg.error { color: #c0392b; }
+    #register-msg.success { color: #2e7d52; }
+  </style>
+</head>
+<body>
+<div class="register-box">
+  <h1>📝 Create Account</h1>
+  <p>Register to start tracking grades and attendance</p>
+  
+  <label>Username</label>
+  <input type="text" id="username" placeholder="Choose a username" />
+  
+  <label>Password</label>
+  <input type="password" id="password" placeholder="Choose a password" />
+  
+  <button class="btn-register" onclick="register()">Register</button>
+  <p id="register-msg"></p>
+  
+  <div class="login-link">
+    Already have an account? <a href="/login">Login here</a>
+  </div>
+</div>
+
+<script>
+async function register() {
+  const username = document.getElementById("username").value.trim();
+  const password = document.getElementById("password").value.trim();
+  const msg = document.getElementById("register-msg");
+  
+  if (!username || !password) {
+    msg.className = "error";
+    msg.textContent = "Please fill in all fields.";
+    return;
+  }
+  
+  if (password.length < 4) {
+    msg.className = "error";
+    msg.textContent = "Password must be at least 4 characters.";
+    return;
+  }
+  
+  const res = await fetch("/register", {
+    method: "POST",
+    headers: {"Content-Type": "application/json"},
+    body: JSON.stringify({username, password})
+  });
+  
+  const data = await res.json();
+  
+  if (res.ok) {
+    msg.className = "success";
+    msg.textContent = "✅ Account created! Redirecting to login...";
+    setTimeout(() => window.location.href = "/login", 1500);
+  } else {
+    msg.className = "error";
+    msg.textContent = data.error || "Registration failed. Please try again.";
+  }
+}
+
+// Allow Enter key to submit
+document.addEventListener("keypress", function(e) {
+  if (e.key === "Enter") register();
+});
+</script>
+</body>
+</html>

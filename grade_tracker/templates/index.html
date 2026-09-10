@@ -1,0 +1,638 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Teacher's Companion</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --navy: #1a2744; --navy-light: #243360; --amber: #f5a623;
+      --white: #ffffff; --bg: #f0f3f9; --text: #1a2744;
+      --muted: #6b7a99; --border: #d8dff0;
+      --green: #27ae60; --red: #e74c3c; --orange: #f39c12;
+    }
+    body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
+    header { background: var(--navy); padding: 16px 32px; display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+    header .logo { width: 34px; height: 34px; background: var(--amber); border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 16px; }
+    header h1 { color: var(--white); font-size: 1.1rem; font-weight: 600; }
+    header .right { margin-left: auto; display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
+    header .teacher { color: #a0aec0; font-size: 0.8rem; }
+    header .teacher span { color: var(--amber); font-weight: 600; }
+    header a { color: var(--amber); font-size: 0.8rem; font-weight: 600; text-decoration: none; border: 1px solid var(--amber); padding: 4px 12px; border-radius: 6px; }
+    .tab-nav { background: var(--navy-light); padding: 0 32px; display: flex; gap: 0; overflow-x: auto; }
+    .tab-btn { background: transparent; border: none; color: #a0aec0; padding: 12px 24px; font-family: inherit; font-size: 0.85rem; font-weight: 600; cursor: pointer; border-bottom: 3px solid transparent; transition: all 0.3s; white-space: nowrap; }
+    .tab-btn:hover { color: var(--white); }
+    .tab-btn.active { color: var(--amber); border-bottom-color: var(--amber); }
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
+    main { max-width: 1200px; margin: 32px auto; padding: 0 20px; display: grid; grid-template-columns: 350px 1fr; gap: 24px; align-items: start; }
+    .card { background: var(--white); border-radius: 12px; border: 1px solid var(--border); overflow: hidden; margin-bottom: 24px; }
+    .card-header { background: var(--navy); color: var(--white); padding: 14px 18px; font-size: 0.85rem; font-weight: 600; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px; }
+    .card-body { padding: 18px; }
+    label { display: block; font-size: 0.75rem; font-weight: 600; color: var(--muted); margin-bottom: 4px; margin-top: 12px; }
+    label:first-of-type { margin-top: 0; }
+    input[type="text"], input[type="date"], select { width: 100%; padding: 8px 12px; border: 1px solid var(--border); border-radius: 7px; font-family: inherit; font-size: 0.85rem; }
+    input[type="text"]:focus, input[type="date"]:focus, select:focus { outline: none; border-color: var(--navy); }
+    .hint { font-size: 0.72rem; color: var(--muted); margin-top: 3px; }
+    .btn-add { width: 100%; padding: 10px; background: var(--amber); border: none; border-radius: 7px; font-family: inherit; font-size: 0.88rem; font-weight: 700; color: var(--navy); cursor: pointer; margin-top: 16px; }
+    .btn-add:hover { background: #d4891a; }
+    .btn-primary { padding: 8px 16px; background: var(--navy); color: var(--white); border: none; border-radius: 6px; font-family: inherit; font-weight: 600; cursor: pointer; }
+    .btn-primary:hover { background: var(--navy-light); }
+    .btn-export { background: var(--amber); color: var(--navy); padding: 4px 12px; border-radius: 6px; text-decoration: none; font-size: 0.75rem; font-weight: 600; border: none; cursor: pointer; display: inline-block; }
+    .btn-export:hover { background: #d4891a; }
+    #form-msg { margin-top: 8px; font-size: 0.78rem; font-weight: 500; min-height: 16px; }
+    #form-msg.error { color: #c0392b; }
+    #form-msg.success { color: #2e7d52; }
+    .table-wrap { overflow-x: auto; }
+    table { width: 100%; border-collapse: collapse; font-size: 0.82rem; }
+    thead th { background: var(--bg); color: var(--muted); font-weight: 600; font-size: 0.72rem; text-align: left; padding: 10px 12px; border-bottom: 1px solid var(--border); }
+    tbody tr { border-bottom: 1px solid var(--border); }
+    tbody tr:last-child { border-bottom: none; }
+    tbody tr:hover { background: #f7f9fc; }
+    tbody td { padding: 10px 12px; vertical-align: middle; }
+    .badge { display: inline-block; padding: 2px 8px; border-radius: 20px; font-size: 0.72rem; font-weight: 700; }
+    .badge-A { background: #d4f0e0; color: #1a6e3e; }
+    .badge-B { background: #d6eaff; color: #1a4a7a; }
+    .badge-C { background: #fff3cc; color: #7a5a00; }
+    .badge-D { background: #ffe8d6; color: #7a3a00; }
+    .badge-F { background: #fdd9d7; color: #7a1a17; }
+    .btn-del { background: none; border: 1px solid var(--border); border-radius: 6px; color: var(--muted); font-size: 0.75rem; padding: 3px 8px; cursor: pointer; font-family: inherit; }
+    .btn-del:hover { border-color: #c0392b; color: #c0392b; }
+    .btn-edit { background: none; border: 1px solid var(--border); border-radius: 6px; color: var(--muted); font-size: 0.75rem; padding: 3px 8px; cursor: pointer; font-family: inherit; margin-right: 4px; }
+    .btn-edit:hover { border-color: var(--navy); color: var(--navy); }
+    .empty { text-align: center; padding: 36px; color: var(--muted); font-size: 0.85rem; }
+    .summary { display: flex; gap: 16px; padding: 12px 18px; border-top: 1px solid var(--border); background: var(--bg); font-size: 0.76rem; color: var(--muted); flex-wrap: wrap; }
+    .summary strong { color: var(--text); }
+    .attendance-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 12px; margin: 12px 0; }
+    .attendance-item { display: flex; align-items: center; gap: 8px; padding: 8px; background: var(--bg); border-radius: 6px; }
+    .attendance-item select { flex: 1; }
+    .status-badge { display: inline-block; padding: 4px 12px; border-radius: 12px; font-size: 0.72rem; font-weight: 600; }
+    .status-Present { background: #d4f0e0; color: #1a6e3e; }
+    .status-Absent { background: #fdd9d7; color: #7a1a17; }
+    .status-Late { background: #fff3cc; color: #7a5a00; }
+    .progress-bar { width: 100%; height: 8px; background: var(--bg); border-radius: 4px; overflow: hidden; }
+    .progress-fill { height: 100%; background: var(--green); transition: width 0.3s; }
+    .progress-fill.warning { background: var(--orange); }
+    .progress-fill.danger { background: var(--red); }
+    .filter-row { display: flex; gap: 12px; margin-bottom: 12px; flex-wrap: wrap; }
+    .filter-row input, .filter-row button { flex: 1; min-width: 120px; }
+    .chart-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    .chart-section { background: var(--bg); padding: 12px; border-radius: 8px; }
+    .chart-section h4 { font-size: 0.8rem; color: var(--muted); margin-bottom: 8px; }
+    .chart-bar-container { display: flex; align-items: flex-end; gap: 12px; height: 120px; padding: 8px 0; }
+    .chart-bar-item { flex: 1; display: flex; flex-direction: column; align-items: center; height: 100%; justify-content: flex-end; }
+    .chart-bar-fill { width: 30px; border-radius: 4px 4px 0 0; min-height: 4px; transition: height 0.5s ease; }
+    .chart-bar-label { font-size: 0.6rem; color: var(--muted); margin-top: 4px; text-align: center; }
+    .chart-bar-value { font-weight: 700; font-size: 0.7rem; margin-top: 2px; }
+    .student-list-item { display: flex; justify-content: space-between; padding: 4px 0; border-bottom: 1px solid var(--border); font-size: 0.8rem; }
+    .student-list-item:last-child { border-bottom: none; }
+    .grade-dist-item { display: flex; justify-content: space-between; padding: 4px 0; border-bottom: 1px solid var(--border); font-size: 0.8rem; }
+    .grade-dist-item:last-child { border-bottom: none; }
+    @media (max-width: 700px) { 
+      main { grid-template-columns: 1fr; }
+      header .right { margin-left: 0; width: 100%; justify-content: space-between; }
+      .card-header { flex-direction: column; align-items: stretch; }
+      .chart-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+<header>
+  <div class="logo">📊</div>
+  <h1>Teacher's Companion</h1>
+  <div class="right">
+    <span class="teacher">Logged in as <span>{{ username }}</span></span>
+    <a href="/logout">Logout</a>
+  </div>
+</header>
+
+<div class="tab-nav">
+  <button class="tab-btn active" onclick="switchTab('grades')">📝 Grades</button>
+  <button class="tab-btn" onclick="switchTab('attendance')">✅ Attendance</button>
+</div>
+
+<!-- GRADES TAB -->
+<div id="grades-tab" class="tab-content active">
+<main>
+  <!-- Left Column -->
+  <div>
+    <div class="card">
+      <div class="card-header">Add Student</div>
+      <div class="card-body">
+        <label>Full Name</label>
+        <input type="text" id="name" placeholder="e.g. Amina Hassan"/>
+        <label>Subject</label>
+        <input type="text" id="subject" placeholder="e.g. Mathematics"/>
+        <label>Scores</label>
+        <input type="text" id="grades" placeholder="e.g. 85, 90, 78"/>
+        <p class="hint">Enter scores separated by commas (0–100)</p>
+        <button class="btn-add" onclick="addStudent()">Add Student</button>
+        <p id="form-msg"></p>
+      </div>
+    </div>
+
+    <!-- Charts Card -->
+    <div class="card">
+      <div class="card-header">📊 Performance Charts</div>
+      <div class="card-body">
+        <div id="charts-container">
+          <p class="hint">Add students to see charts</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Right Column -->
+  <div>
+    <div class="card">
+      <div class="card-header">
+        <span>Class Records</span>
+        <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+          <a href="/api/export/pdf" class="btn-export" target="_blank">📄 PDF</a>
+          <a href="/api/export" class="btn-export">📊 Excel</a>
+        </div>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Name</th>
+              <th>Subject</th>
+              <th>Scores</th>
+              <th>Average</th>
+              <th>Grade</th>
+              <th>Remark</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="table-body">
+            <tr><td colspan="7"><div class="empty">No students yet. Add one to get started.</div></td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="summary" id="summary" style="display:none;">
+        <span>Total: <strong id="s-total">0</strong></span>
+        <span>Class Average: <strong id="s-avg">—</strong></span>
+        <span>Top Score: <strong id="s-top">—</strong></span>
+      </div>
+    </div>
+  </div>
+</main>
+</div>
+
+<!-- ATTENDANCE TAB -->
+<div id="attendance-tab" class="tab-content">
+<main>
+  <div class="card">
+    <div class="card-header">Mark Attendance</div>
+    <div class="card-body">
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+        <div>
+          <label>Subject</label>
+          <select id="att-subject">
+            <option value="">Select a subject</option>
+          </select>
+        </div>
+        <div>
+          <label>Date</label>
+          <input type="date" id="att-date" />
+        </div>
+      </div>
+      <div id="attendance-students" style="margin-top: 12px;">
+        <p class="hint">Select a subject to load students</p>
+      </div>
+      <button class="btn-add" onclick="saveAttendance()">✅ Save Attendance</button>
+      <p id="att-msg"></p>
+    </div>
+  </div>
+
+  <div>
+    <div class="card">
+      <div class="card-header">
+        <span>Attendance Records</span>
+        <a href="/api/export/attendance" class="btn-export">📊 Excel</a>
+      </div>
+      <div class="card-body">
+        <div class="filter-row">
+          <input type="date" id="filter-date" />
+          <button class="btn-primary" onclick="loadAttendanceRecords()">🔍 Filter</button>
+          <button class="btn-primary" onclick="loadAttendanceRecords('all')">📋 Show All</button>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Student</th>
+                <th>Subject</th>
+                <th>Date</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody id="attendance-table-body">
+              <tr><td colspan="4"><div class="empty">No attendance records yet.</div></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header">Attendance Summary</div>
+      <div class="card-body">
+        <div id="attendance-summary">
+          <p class="hint">Loading summary...</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</main>
+</div>
+<script>
+const API = "/api/students";
+const ATT_API = "/api/attendance";
+
+// --- Tab Switching ---
+function switchTab(tab) {
+  document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
+  document.getElementById(`${tab}-tab`).classList.add('active');
+  document.querySelector(`.tab-btn[onclick="switchTab('${tab}')"]`).classList.add('active');
+  if (tab === 'attendance') {
+    loadAttendanceSubjects();
+    loadAttendanceSummary();
+    loadAttendanceRecords();
+  }
+}
+
+// --- GRADES FUNCTIONS ---
+async function loadStudents() {
+  const res = await fetch(API);
+  const students = await res.json();
+  renderTable(students);
+}
+
+function renderTable(students) {
+  const tbody = document.getElementById("table-body");
+  const summary = document.getElementById("summary");
+
+  if (students.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="7"><div class="empty">📋 No students yet. Add one to get started.</div></td></tr>`;
+    summary.style.display = "none";
+    loadCharts();
+    return;
+  }
+
+  tbody.innerHTML = students.map(s => `
+    <tr data-student-id="${s.id}">
+      <td><strong class="student-name">${s.name}</strong></td>
+      <td class="student-subject">${s.subject}</td>
+      <td class="student-grades" style="color:#6b7a99; font-size:0.78rem;">${s.grades.join(", ")}</td>
+      <td><strong>${s.average}</strong></td>
+      <td><span class="badge badge-${s.grade}">${s.grade}</span></td>
+      <td>${s.remark}</td>
+      <td>
+        <button class="btn-edit" onclick="editStudent(${s.id})">✏️</button>
+        <button class="btn-del" onclick="deleteStudent(${s.id})">🗑️</button>
+      </td>
+    </tr>
+  `).join("");
+
+  const avgs = students.map(s => s.average);
+  const classAvg = (avgs.reduce((a,b) => a+b, 0) / avgs.length).toFixed(1);
+  document.getElementById("s-total").textContent = students.length;
+  document.getElementById("s-avg").textContent = classAvg;
+  document.getElementById("s-top").textContent = Math.max(...avgs);
+  summary.style.display = "flex";
+  
+  loadCharts();
+}
+
+async function addStudent() {
+  const name = document.getElementById("name").value.trim();
+  const subject = document.getElementById("subject").value.trim();
+  const gradesRaw = document.getElementById("grades").value.trim();
+  const msg = document.getElementById("form-msg");
+  const grades = gradesRaw ? gradesRaw.split(",").map(g => parseFloat(g.trim())).filter(g => !isNaN(g)) : [];
+  if (!name || !subject) { msg.className="error"; msg.textContent="Please fill in name and subject."; return; }
+  if (grades.length === 0) { msg.className="error"; msg.textContent="Please enter at least one valid grade."; return; }
+  const res = await fetch(API, {
+    method: "POST",
+    headers: {"Content-Type": "application/json"},
+    body: JSON.stringify({name, subject, grades})
+  });
+  const data = await res.json();
+  if (!res.ok) { msg.className="error"; msg.textContent=data.error||"Error."; return; }
+  ["name","subject","grades"].forEach(id => document.getElementById(id).value="");
+  msg.className="success";
+  msg.textContent=`${data.name} added — ${data.grade} — ${data.remark}`;
+  setTimeout(() => msg.textContent="", 3000);
+  loadStudents();
+}
+
+async function deleteStudent(id) {
+  if (!confirm("Delete this student?")) return;
+  await fetch(`${API}/${id}`, {method:"DELETE"});
+  loadStudents();
+}
+
+// --- EDIT STUDENT ---
+async function editStudent(id) {
+  const row = document.querySelector(`tr[data-student-id="${id}"]`);
+  if (!row) return;
+  
+  const currentName = row.querySelector('.student-name').textContent;
+  const currentSubject = row.querySelector('.student-subject').textContent;
+  const currentGrades = row.querySelector('.student-grades').textContent;
+  
+  const name = prompt("Enter new name:", currentName);
+  if (name === null) return;
+  if (!name.trim()) { alert("Name cannot be empty."); return; }
+  
+  const subject = prompt("Enter new subject:", currentSubject);
+  if (subject === null) return;
+  if (!subject.trim()) { alert("Subject cannot be empty."); return; }
+  
+  const gradesRaw = prompt("Enter new grades (comma separated):", currentGrades);
+  if (gradesRaw === null) return;
+  
+  const grades = gradesRaw.split(",").map(g => parseFloat(g.trim())).filter(g => !isNaN(g));
+  if (grades.length === 0) {
+    alert("Please enter valid grades.");
+    return;
+  }
+  
+  const res = await fetch(`/api/students/${id}`, {
+    method: "PUT",
+    headers: {"Content-Type": "application/json"},
+    body: JSON.stringify({name: name.trim(), subject: subject.trim(), grades})
+  });
+  
+  if (res.ok) {
+    loadStudents();
+  } else {
+    const data = await res.json();
+    alert(data.error || "Error updating student.");
+  }
+}
+
+// --- CHARTS ---
+async function loadCharts() {
+  const container = document.getElementById('charts-container');
+  
+  try {
+    const res = await fetch('/api/charts/performance');
+    const data = await res.json();
+    
+    if (Object.keys(data.subject_averages).length === 0) {
+      container.innerHTML = '<p class="hint">Add students to see charts</p>';
+      return;
+    }
+    
+    const colors = ['#1a2744', '#f5a623', '#27ae60', '#e74c3c', '#3498db', '#9b59b6', '#1abc9c'];
+    
+    // Subject Averages Chart
+    let subjectHtml = '';
+    let i = 0;
+    const maxAvg = Math.max(...Object.values(data.subject_averages), 10);
+    for (const [subject, avg] of Object.entries(data.subject_averages)) {
+      const color = colors[i % colors.length];
+      const height = Math.max((avg / maxAvg) * 100, 10);
+      subjectHtml += `
+        <div class="chart-bar-item">
+          <div class="chart-bar-value">${avg}%</div>
+          <div class="chart-bar-fill" style="height:${height}%; background:${color};"></div>
+          <div class="chart-bar-label">${subject}</div>
+        </div>
+      `;
+      i++;
+    }
+    
+    // Top Students
+    let topStudentsHtml = '';
+    if (data.top_students.length > 0) {
+      data.top_students.slice(0, 5).forEach((s, i) => {
+        topStudentsHtml += `
+          <div class="student-list-item">
+            <span>${i+1}. ${s.name}</span>
+            <strong>${s.average}%</strong>
+          </div>
+        `;
+      });
+    } else {
+      topStudentsHtml = '<p style="font-size:0.8rem;color:var(--muted);">No students yet</p>';
+    }
+    
+    // Grade Distribution
+    let gradeHtml = '';
+    let hasGrades = false;
+    for (const [grade, count] of Object.entries(data.grade_distribution)) {
+      if (count > 0) hasGrades = true;
+      gradeHtml += `
+        <div class="grade-dist-item">
+          <span>Grade ${grade}</span>
+          <strong>${count} student${count !== 1 ? 's' : ''}</strong>
+        </div>
+      `;
+    }
+    if (!hasGrades) gradeHtml = '<p style="font-size:0.8rem;color:var(--muted);">No grades yet</p>';
+    
+    container.innerHTML = `
+      <div class="chart-grid">
+        <div class="chart-section">
+          <h4>📊 Subject Averages</h4>
+          <div class="chart-bar-container">
+            ${subjectHtml}
+          </div>
+        </div>
+        <div class="chart-section">
+          <h4>🏆 Top Students</h4>
+          ${topStudentsHtml}
+        </div>
+        <div class="chart-section" style="grid-column: 1 / -1;">
+          <h4>📈 Grade Distribution</h4>
+          <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(100px, 1fr)); gap: 8px;">
+            ${gradeHtml}
+          </div>
+        </div>
+      </div>
+    `;
+  } catch (e) {
+    console.error('Chart error:', e);
+    container.innerHTML = '<p class="hint">Error loading charts. Please refresh.</p>';
+  }
+}
+
+// --- ATTENDANCE FUNCTIONS ---
+async function loadAttendanceSubjects() {
+  const res = await fetch(`${ATT_API}/subjects`);
+  const subjects = await res.json();
+  const select = document.getElementById('att-subject');
+  select.innerHTML = '<option value="">Select a subject</option>';
+  subjects.forEach(s => {
+    select.innerHTML += `<option value="${s}">${s}</option>`;
+  });
+  
+  if (!document.getElementById('att-date').value) {
+    document.getElementById('att-date').value = new Date().toISOString().split('T')[0];
+  }
+  
+  select.onchange = loadAttendanceStudents;
+}
+
+async function loadAttendanceStudents() {
+  const subject = document.getElementById('att-subject').value;
+  const container = document.getElementById('attendance-students');
+  
+  if (!subject) {
+    container.innerHTML = '<p class="hint">Select a subject to load students</p>';
+    return;
+  }
+  
+  const res = await fetch(API);
+  const students = await res.json();
+  const filtered = students.filter(s => s.subject === subject);
+  
+  if (filtered.length === 0) {
+    container.innerHTML = '<p class="hint">No students found for this subject. Add students first.</p>';
+    return;
+  }
+  
+  container.innerHTML = `
+    <div class="attendance-grid">
+      ${filtered.map(s => `
+        <div class="attendance-item">
+          <strong style="flex:1; font-size:0.85rem;">${s.name}</strong>
+          <select class="att-status" data-student="${s.name}">
+            <option value="Present">Present</option>
+            <option value="Absent">Absent</option>
+            <option value="Late">Late</option>
+          </select>
+        </div>
+      `).join('')}
+    </div>
+  `;
+}
+
+async function saveAttendance() {
+  const subject = document.getElementById('att-subject').value;
+  const date = document.getElementById('att-date').value;
+  const msg = document.getElementById('att-msg');
+  
+  if (!subject) {
+    msg.className = "error";
+    msg.textContent = "Please select a subject";
+    return;
+  }
+  
+  const selects = document.querySelectorAll('.att-status');
+  let saved = 0;
+  
+  for (const select of selects) {
+    const student_name = select.dataset.student;
+    const status = select.value;
+    
+    const res = await fetch(ATT_API, {
+      method: "POST",
+      headers: {"Content-Type": "application/json"},
+      body: JSON.stringify({student_name, subject, status, date})
+    });
+    
+    if (res.ok) saved++;
+  }
+  
+  msg.className = "success";
+  msg.textContent = `✅ Attendance saved for ${saved} students!`;
+  setTimeout(() => msg.textContent = "", 3000);
+  
+  loadAttendanceRecords(date);
+  loadAttendanceSummary();
+}
+
+async function loadAttendanceRecords(dateFilter = null) {
+  const tbody = document.getElementById('attendance-table-body');
+  let url = ATT_API;
+  
+  if (dateFilter && dateFilter !== 'all') {
+    url += `?date=${dateFilter}`;
+  } else if (document.getElementById('filter-date').value && dateFilter !== 'all') {
+    url += `?date=${document.getElementById('filter-date').value}`;
+  }
+  
+  const res = await fetch(url);
+  const records = await res.json();
+  
+  if (records.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="4"><div class="empty">No attendance records found.</div></td></tr>`;
+    return;
+  }
+  
+  tbody.innerHTML = records.map(r => `
+    <tr>
+      <td><strong>${r.student_name}</strong></td>
+      <td>${r.subject}</td>
+      <td>${r.date}</td>
+      <td><span class="status-badge status-${r.status}">${r.status}</span></td>
+    </tr>
+  `).join('');
+}
+
+async function loadAttendanceSummary() {
+  const container = document.getElementById('attendance-summary');
+  const res = await fetch(`${ATT_API}/summary`);
+  const summary = await res.json();
+  
+  if (summary.length === 0) {
+    container.innerHTML = '<p class="hint">No attendance data yet.</p>';
+    return;
+  }
+  
+  container.innerHTML = `
+    <div style="overflow-x:auto;">
+      <table>
+        <thead>
+          <tr>
+            <th>Student</th>
+            <th>Present</th>
+            <th>Absent</th>
+            <th>Late</th>
+            <th>Total</th>
+            <th>Attendance %</th>
+            <th>Progress</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${summary.map(s => `
+            <tr>
+              <td><strong>${s.student_name}</strong></td>
+              <td style="color:var(--green);">${s.present}</td>
+              <td style="color:var(--red);">${s.absent}</td>
+              <td style="color:var(--orange);">${s.late}</td>
+              <td>${s.total}</td>
+              <td><strong>${s.percentage}%</strong></td>
+              <td style="min-width:120px;">
+                <div class="progress-bar">
+                  <div class="progress-fill ${s.percentage < 70 ? 'danger' : s.percentage < 85 ? 'warning' : ''}" 
+                       style="width:${s.percentage}%;"></div>
+                </div>
+              </td>
+            </tr>
+          `).join('')}
+        </tbody>
+      </table>
+    </div>
+  `;
+}
+
+// --- Initialize ---
+loadStudents();
+loadAttendanceSubjects();
+loadAttendanceSummary();
+loadAttendanceRecords();
+
+// Set default date
+document.getElementById('att-date').value = new Date().toISOString().split('T')[0];
+</script>
+</body>
+</html>
