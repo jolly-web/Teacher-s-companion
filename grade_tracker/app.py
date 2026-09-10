@@ -9,7 +9,6 @@ from config import config
 
 app = Flask(__name__)
 
-# Load configuration based on environment
 env = os.environ.get('FLASK_ENV', 'default')
 app.config.from_object(config[env])
 
@@ -24,14 +23,11 @@ def get_db():
 
 def init_db():
     conn = get_db()
-    # Teachers table
     conn.execute('''CREATE TABLE IF NOT EXISTS teachers (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         username TEXT UNIQUE NOT NULL,
         password TEXT NOT NULL
     )''')
-    
-    # Students table (for grades)
     conn.execute('''CREATE TABLE IF NOT EXISTS students (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         teacher_id INTEGER NOT NULL,
@@ -39,8 +35,6 @@ def init_db():
         subject TEXT NOT NULL,
         grades TEXT NOT NULL
     )''')
-    
-    # Attendance table
     conn.execute('''CREATE TABLE IF NOT EXISTS attendance (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         teacher_id INTEGER NOT NULL,
@@ -50,7 +44,6 @@ def init_db():
         status TEXT NOT NULL,
         UNIQUE(teacher_id, student_name, subject, date)
     )''')
-    
     conn.commit()
     conn.close()
 
@@ -68,7 +61,6 @@ def load_user(user_id):
         return Teacher(row["id"], row["username"])
     return None
 
-# --- NECTA Grading ---
 def necta_grade(score):
     if score >= 75: return ("A", "Excellent")
     if score >= 65: return ("B", "Very Good")
@@ -80,7 +72,6 @@ def calculate_average(grades):
     if not grades: return 0
     return round(sum(grades) / len(grades), 1)
 
-# --- Routes ---
 @app.route("/")
 @login_required
 def index():
@@ -126,7 +117,6 @@ def logout():
     logout_user()
     return redirect(url_for("login"))
 
-# --- Grade Routes ---
 @app.route("/api/students", methods=["GET"])
 @login_required
 def get_students():
@@ -162,7 +152,6 @@ def get_students():
             "remark": remark
         })
     
-    # Handle average sorting
     if sort_by == "avg_desc":
         result.sort(key=lambda x: x["average"], reverse=True)
     elif sort_by == "avg_asc":
@@ -235,8 +224,6 @@ def edit_student(student_id):
         "grade": grade,
         "remark": remark
     })
-
-# --- Attendance Routes ---
 @app.route("/api/attendance", methods=["GET"])
 @login_required
 def get_attendance():
@@ -317,7 +304,6 @@ def get_attendance_subjects():
 @app.route("/api/attendance/summary", methods=["GET"])
 @login_required
 def get_attendance_summary():
-    """Get attendance summary with percentages"""
     conn = get_db()
     
     students = conn.execute("SELECT DISTINCT name FROM students WHERE teacher_id=?", (current_user.id,)).fetchall()
@@ -352,7 +338,6 @@ def get_attendance_summary():
     conn.close()
     return jsonify(summary)
 
-# --- Export Routes ---
 @app.route("/api/export")
 @login_required
 def export_data():
@@ -450,14 +435,7 @@ def export_pdf():
         grades = [float(g) for g in row["grades"].split(",") if g]
         avg = calculate_average(grades)
         grade, remark = necta_grade(avg)
-        data.append([
-            row["name"],
-            row["subject"],
-            row["grades"],
-            str(avg),
-            grade,
-            remark
-        ])
+        data.append([row["name"], row["subject"], row["grades"], str(avg), grade, remark])
     
     table = Table(data, colWidths=[1.2*inch, 1.2*inch, 1.5*inch, 0.8*inch, 0.6*inch, 1.2*inch])
     table.setStyle(TableStyle([
@@ -511,7 +489,6 @@ def export_pdf():
         headers={"Content-Disposition": "attachment;filename=student_report.pdf"}
     )
 
-# --- Charts API ---
 @app.route("/api/charts/performance")
 @login_required
 def get_performance_data():
@@ -524,7 +501,6 @@ def get_performance_data():
         subject = row["subject"]
         grades = [float(g) for g in row["grades"].split(",") if g]
         avg = calculate_average(grades)
-        
         if subject not in subject_data:
             subject_data[subject] = []
         subject_data[subject].append(avg)
@@ -557,7 +533,6 @@ def get_performance_data():
         "grade_distribution": grade_counts
     })
 
-# --- Backup Route ---
 @app.route("/api/backup")
 @login_required
 def backup_database():
