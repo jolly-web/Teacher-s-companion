@@ -47,7 +47,7 @@ def init_db():
         student_name TEXT NOT NULL,
         subject TEXT NOT NULL,
         date TEXT NOT NULL,
-        status TEXT NOT NULL,  -- Present, Absent, Late
+        status TEXT NOT NULL,
         UNIQUE(teacher_id, student_name, subject, date)
     )''')
     
@@ -130,9 +130,23 @@ def logout():
 @app.route("/api/students", methods=["GET"])
 @login_required
 def get_students():
+    sort_by = request.args.get("sort", "date")
+    
     conn = get_db()
-    rows = conn.execute("SELECT * FROM students WHERE teacher_id=?", (current_user.id,)).fetchall()
+    
+    if sort_by == "name_asc":
+        order_clause = "ORDER BY LOWER(name) ASC"
+    elif sort_by == "name_desc":
+        order_clause = "ORDER BY LOWER(name) DESC"
+    elif sort_by == "subject":
+        order_clause = "ORDER BY LOWER(subject) ASC, LOWER(name) ASC"
+    else:
+        order_clause = "ORDER BY id DESC"
+    
+    query = f"SELECT * FROM students WHERE teacher_id=? {order_clause}"
+    rows = conn.execute(query, (current_user.id,)).fetchall()
     conn.close()
+    
     result = []
     for row in rows:
         grades = [float(g) for g in row["grades"].split(",") if g]
@@ -147,6 +161,13 @@ def get_students():
             "grade": grade,
             "remark": remark
         })
+    
+    # Handle average sorting
+    if sort_by == "avg_desc":
+        result.sort(key=lambda x: x["average"], reverse=True)
+    elif sort_by == "avg_asc":
+        result.sort(key=lambda x: x["average"])
+    
     return jsonify(result)
 
 @app.route("/api/students", methods=["POST"])
@@ -180,7 +201,6 @@ def delete_student(student_id):
     conn.close()
     return jsonify({"message": "Deleted"})
 
-# --- EDIT STUDENT ROUTE ---
 @app.route("/api/students/<int:student_id>", methods=["PUT"])
 @login_required
 def edit_student(student_id):
@@ -279,7 +299,6 @@ def mark_attendance():
 @app.route("/api/attendance/students", methods=["GET"])
 @login_required
 def get_attendance_students():
-    """Get list of unique student names for attendance marking"""
     conn = get_db()
     rows = conn.execute("SELECT DISTINCT name FROM students WHERE teacher_id=?", (current_user.id,)).fetchall()
     conn.close()
@@ -289,7 +308,6 @@ def get_attendance_students():
 @app.route("/api/attendance/subjects", methods=["GET"])
 @login_required
 def get_attendance_subjects():
-    """Get list of unique subjects for attendance marking"""
     conn = get_db()
     rows = conn.execute("SELECT DISTINCT subject FROM students WHERE teacher_id=?", (current_user.id,)).fetchall()
     conn.close()
@@ -302,13 +320,11 @@ def get_attendance_summary():
     """Get attendance summary with percentages"""
     conn = get_db()
     
-    # Get all students for this teacher
     students = conn.execute("SELECT DISTINCT name FROM students WHERE teacher_id=?", (current_user.id,)).fetchall()
     
     summary = []
     for student in students:
         student_name = student["name"]
-        # Get attendance records for this student
         records = conn.execute("""
             SELECT status FROM attendance 
             WHERE teacher_id=? AND student_name=?
@@ -319,7 +335,7 @@ def get_attendance_summary():
             present = sum(1 for r in records if r["status"] == "Present")
             absent = sum(1 for r in records if r["status"] == "Absent")
             late = sum(1 for r in records if r["status"] == "Late")
-            percentage = round((present + late * 0.5) / total * 100, 1)  # Late counts as half
+            percentage = round((present + late * 0.5) / total * 100, 1)
         else:
             present = absent = late = 0
             percentage = 0
@@ -336,7 +352,7 @@ def get_attendance_summary():
     conn.close()
     return jsonify(summary)
 
-# --- Export Routes (CSV format) ---
+# --- Export Routes ---
 @app.route("/api/export")
 @login_required
 def export_data():
@@ -386,7 +402,6 @@ def export_attendance():
         headers={"Content-Disposition": "attachment;filename=attendance.csv"}
     )
 
-# --- PDF EXPORT ROUTE ---
 @app.route("/api/export/pdf")
 @login_required
 def export_pdf():
@@ -406,33 +421,30 @@ def export_pdf():
     doc = SimpleDocTemplate(buffer, pagesize=landscape(letter))
     elements = []
     
-    # Title
     styles = getSampleStyleSheet()
     title_style = ParagraphStyle(
         'CustomTitle',
         parent=styles['Heading1'],
         fontSize=24,
         textColor=colors.HexColor('#1a2744'),
-        alignment=1,  # Center
+        alignment=1,
         spaceAfter=30
     )
     
-    title = Paragraph("Teacher's Companion - Student Report ", title_style)
+    title = Paragraph("Teacher's Companion — Student Report", title_style)
     elements.append(title)
     
-    # Date
     date_style = ParagraphStyle(
         'DateStyle',
         parent=styles['Normal'],
         fontSize=10,
         textColor=colors.HexColor('#6b7a99'),
-        alignment=2  # Right
+        alignment=2
     )
     date_str = f"Generated: {datetime.datetime.now().strftime('%B %d, %Y %I:%M %p')}"
     elements.append(Paragraph(date_str, date_style))
     elements.append(Spacer(1, 20))
     
-    # Table data
     data = [['Name', 'Subject', 'Grades', 'Average', 'Grade', 'Remark']]
     for row in students:
         grades = [float(g) for g in row["grades"].split(",") if g]
@@ -447,7 +459,6 @@ def export_pdf():
             remark
         ])
     
-    # Create table
     table = Table(data, colWidths=[1.2*inch, 1.2*inch, 1.5*inch, 0.8*inch, 0.6*inch, 1.2*inch])
     table.setStyle(TableStyle([
         ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#1a2744')),
@@ -467,7 +478,6 @@ def export_pdf():
     elements.append(table)
     elements.append(Spacer(1, 20))
     
-    # Summary
     if students:
         all_grades = []
         for row in students:
@@ -501,16 +511,14 @@ def export_pdf():
         headers={"Content-Disposition": "attachment;filename=student_report.pdf"}
     )
 
-# --- CHARTS API ---
+# --- Charts API ---
 @app.route("/api/charts/performance")
 @login_required
 def get_performance_data():
-    """Get data for charts"""
     conn = get_db()
     students = conn.execute("SELECT * FROM students WHERE teacher_id=?", (current_user.id,)).fetchall()
     conn.close()
     
-    # Get subject-wise averages
     subject_data = {}
     for row in students:
         subject = row["subject"]
@@ -521,12 +529,10 @@ def get_performance_data():
             subject_data[subject] = []
         subject_data[subject].append(avg)
     
-    # Calculate averages per subject
     subject_averages = {}
     for subject, avgs in subject_data.items():
         subject_averages[subject] = round(sum(avgs) / len(avgs), 1)
     
-    # Get top performing students
     top_students = []
     for row in students:
         grades = [float(g) for g in row["grades"].split(",") if g]
@@ -538,7 +544,6 @@ def get_performance_data():
         })
     top_students.sort(key=lambda x: x["average"], reverse=True)
     
-    # Grade distribution
     grade_counts = {"A": 0, "B": 0, "C": 0, "D": 0, "F": 0}
     for row in students:
         grades = [float(g) for g in row["grades"].split(",") if g]
@@ -548,18 +553,17 @@ def get_performance_data():
     
     return jsonify({
         "subject_averages": subject_averages,
-        "top_students": top_students[:10],  # Top 10
+        "top_students": top_students[:10],
         "grade_distribution": grade_counts
     })
 
-# --- BACKUP ROUTE (Optional) ---
+# --- Backup Route ---
 @app.route("/api/backup")
 @login_required
 def backup_database():
     import shutil
     from datetime import datetime
     
-    # Create backup
     backup_name = f"backup_{datetime.now().strftime('%Y%m%d_%H%M%S')}.db"
     shutil.copy('grades.db', backup_name)
     
@@ -567,6 +571,5 @@ def backup_database():
 
 if __name__ == "__main__":
     init_db()
-    # For production (Render)
     port = int(os.environ.get("PORT", 5000))
     app.run(host='0.0.0.0', port=port)
