@@ -543,6 +543,29 @@ def backup_database():
     shutil.copy('grades.db', backup_name)
     
     return send_file(backup_name, as_attachment=True)
+@app.route("/manifest.json")
+def manifest():
+    return send_file("templates/manifest.json")
+
+@app.route("/service-worker.js")
+def service_worker():
+    return send_file("templates/service-worker.js")
+
+@app.route("/icon-192.png")
+def icon_192():
+    return send_file("templates/icon-192.png")
+
+@app.route("/icon-512.png")
+def icon_512():
+    return send_file("templates/icon-512.png")
+
+@app.route("/favicon.ico")
+def favicon_ico():
+    return send_file("templates/favicon.ico")
+
+@app.route("/apple-touch-icon.png")
+def apple_touch_icon():
+    return send_file("templates/apple-touch-icon.png")
 
 if __name__ == "__main__":
     init_db()

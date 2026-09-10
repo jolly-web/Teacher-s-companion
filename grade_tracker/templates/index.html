@@ -4,6 +4,10 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Teacher's Companion</title>
+  <link rel="manifest" href="/manifest.json">
+<meta name="theme-color" content="#1a2744">
+<link rel="icon" href="/favicon.ico">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"/>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -632,6 +636,11 @@ loadAttendanceSummary();
 loadAttendanceRecords();
 
 document.getElementById('att-date').value = new Date().toISOString().split('T')[0];
+</script>
+<script>
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('/service-worker.js').catch(() => {});
+  }
 </script>
 </body>
 </html>
