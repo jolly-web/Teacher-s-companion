@@ -91,10 +91,52 @@
     .grade-dist-item { display: flex; justify-content: space-between; padding: 4px 0; border-bottom: 1px solid var(--border); font-size: 0.8rem; }
     .grade-dist-item:last-child { border-bottom: none; }
     @media (max-width: 700px) { 
-      main { grid-template-columns: 1fr; }
-      header .right { margin-left: 0; width: 100%; justify-content: space-between; }
-      .card-header { flex-direction: column; align-items: stretch; }
-      .chart-grid { grid-template-columns: 1fr; }
+      main { grid-template-columns: 1fr; padding: 0 12px; margin: 16px auto; gap: 16px; }
+      header { padding: 12px 16px; }
+      header h1 { font-size: 0.95rem; }
+      header .logo { width: 30px; height: 30px; font-size: 14px; }
+      header .right { margin-left: 0; width: 100%; justify-content: space-between; margin-top: 8px; }
+      header .teacher { font-size: 0.75rem; }
+      header a { font-size: 0.75rem; padding: 6px 12px; }
+      .tab-nav { padding: 0 8px; }
+      .tab-btn { padding: 14px 20px; font-size: 0.9rem; flex: 1; text-align: center; }
+      .card { border-radius: 10px; margin-bottom: 16px; }
+      .card-header { flex-direction: column; align-items: stretch; padding: 12px 14px; font-size: 0.8rem; }
+      .card-header > div { justify-content: center; margin-top: 8px; }
+      .card-body { padding: 14px; }
+      input[type="text"], input[type="date"], select { padding: 12px 14px; font-size: 0.95rem; }
+      label { font-size: 0.8rem; margin-top: 14px; }
+      .btn-add { padding: 14px; font-size: 0.95rem; }
+      .btn-primary { padding: 12px 20px; font-size: 0.85rem; }
+      .btn-export { padding: 6px 14px; font-size: 0.8rem; }
+      #sort-select { width: 100%; margin-bottom: 6px; padding: 8px; font-size: 0.8rem; }
+      table { font-size: 0.78rem; }
+      thead th { padding: 8px 6px; font-size: 0.68rem; }
+      tbody td { padding: 10px 6px; }
+      .badge { padding: 3px 8px; font-size: 0.7rem; }
+      .btn-del, .btn-edit { padding: 6px 10px; font-size: 0.75rem; }
+      .summary { padding: 10px 14px; gap: 10px; font-size: 0.72rem; }
+      .chart-grid { grid-template-columns: 1fr; gap: 12px; }
+      .chart-section { padding: 12px; }
+      .chart-bar-container { height: 100px; gap: 8px; }
+      .chart-bar-fill { width: 24px; }
+      .chart-bar-label { font-size: 0.65rem; }
+      .attendance-grid { grid-template-columns: 1fr; gap: 10px; }
+      .attendance-item { padding: 12px; }
+      .attendance-item select { padding: 10px; font-size: 0.9rem; }
+      .filter-row { flex-direction: column; }
+      .filter-row input, .filter-row button { width: 100%; min-width: auto; }
+      #attendance-summary table { font-size: 0.72rem; }
+      #attendance-summary th, #attendance-summary td { padding: 8px 4px; }
+    }
+    @media (max-width: 400px) {
+      header h1 { font-size: 0.85rem; }
+      .tab-btn { padding: 12px 14px; font-size: 0.8rem; }
+      .card-header { font-size: 0.75rem; }
+      table { font-size: 0.72rem; }
+      thead th { font-size: 0.62rem; padding: 6px 4px; }
+      tbody td { padding: 8px 4px; }
+      .btn-del, .btn-edit { padding: 5px 8px; font-size: 0.7rem; }
     }
   </style>
 </head>
@@ -116,7 +158,6 @@
 <!-- GRADES TAB -->
 <div id="grades-tab" class="tab-content active">
 <main>
-  <!-- Left Column -->
   <div>
     <div class="card">
       <div class="card-header">Add Student</div>
@@ -132,8 +173,6 @@
         <p id="form-msg"></p>
       </div>
     </div>
-
-    <!-- Charts Card -->
     <div class="card">
       <div class="card-header">📊 Performance Charts</div>
       <div class="card-body">
@@ -144,12 +183,19 @@
     </div>
   </div>
 
-  <!-- Right Column -->
   <div>
     <div class="card">
       <div class="card-header">
         <span>Class Records</span>
-        <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+        <div style="display: flex; gap: 8px; flex-wrap: wrap; align-items: center;">
+          <select id="sort-select" onchange="changeSort()" style="padding: 4px 8px; border-radius: 6px; font-size: 0.75rem; border: 1px solid var(--border); font-family: inherit; cursor: pointer;">
+            <option value="date">📅 Date Added</option>
+            <option value="name_asc">🔤 Name (A-Z)</option>
+            <option value="name_desc">🔤 Name (Z-A)</option>
+            <option value="subject">📚 Subject</option>
+            <option value="avg_desc">📊 Highest Average</option>
+            <option value="avg_asc">📊 Lowest Average</option>
+          </select>
           <a href="/api/export/pdf" class="btn-export" target="_blank">📄 PDF</a>
           <a href="/api/export" class="btn-export">📊 Excel</a>
         </div>
@@ -253,7 +299,6 @@
 const API = "/api/students";
 const ATT_API = "/api/attendance";
 
-// --- Tab Switching ---
 function switchTab(tab) {
   document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
   document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
@@ -266,24 +311,28 @@ function switchTab(tab) {
   }
 }
 
-// --- GRADES FUNCTIONS ---
+let currentSort = "date";
+
 async function loadStudents() {
-  const res = await fetch(API);
+  const res = await fetch(`${API}?sort=${currentSort}`);
   const students = await res.json();
   renderTable(students);
+}
+
+function changeSort() {
+  currentSort = document.getElementById("sort-select").value;
+  loadStudents();
 }
 
 function renderTable(students) {
   const tbody = document.getElementById("table-body");
   const summary = document.getElementById("summary");
-
   if (students.length === 0) {
     tbody.innerHTML = `<tr><td colspan="7"><div class="empty">📋 No students yet. Add one to get started.</div></td></tr>`;
     summary.style.display = "none";
     loadCharts();
     return;
   }
-
   tbody.innerHTML = students.map(s => `
     <tr data-student-id="${s.id}">
       <td><strong class="student-name">${s.name}</strong></td>
@@ -298,14 +347,12 @@ function renderTable(students) {
       </td>
     </tr>
   `).join("");
-
   const avgs = students.map(s => s.average);
   const classAvg = (avgs.reduce((a,b) => a+b, 0) / avgs.length).toFixed(1);
   document.getElementById("s-total").textContent = students.length;
   document.getElementById("s-avg").textContent = classAvg;
   document.getElementById("s-top").textContent = Math.max(...avgs);
   summary.style.display = "flex";
-  
   loadCharts();
 }
 
@@ -337,62 +384,41 @@ async function deleteStudent(id) {
   loadStudents();
 }
 
-// --- EDIT STUDENT ---
 async function editStudent(id) {
   const row = document.querySelector(`tr[data-student-id="${id}"]`);
   if (!row) return;
-  
   const currentName = row.querySelector('.student-name').textContent;
   const currentSubject = row.querySelector('.student-subject').textContent;
   const currentGrades = row.querySelector('.student-grades').textContent;
-  
   const name = prompt("Enter new name:", currentName);
   if (name === null) return;
   if (!name.trim()) { alert("Name cannot be empty."); return; }
-  
   const subject = prompt("Enter new subject:", currentSubject);
   if (subject === null) return;
   if (!subject.trim()) { alert("Subject cannot be empty."); return; }
-  
   const gradesRaw = prompt("Enter new grades (comma separated):", currentGrades);
   if (gradesRaw === null) return;
-  
   const grades = gradesRaw.split(",").map(g => parseFloat(g.trim())).filter(g => !isNaN(g));
-  if (grades.length === 0) {
-    alert("Please enter valid grades.");
-    return;
-  }
-  
+  if (grades.length === 0) { alert("Please enter valid grades."); return; }
   const res = await fetch(`/api/students/${id}`, {
     method: "PUT",
     headers: {"Content-Type": "application/json"},
     body: JSON.stringify({name: name.trim(), subject: subject.trim(), grades})
   });
-  
-  if (res.ok) {
-    loadStudents();
-  } else {
-    const data = await res.json();
-    alert(data.error || "Error updating student.");
-  }
+  if (res.ok) { loadStudents(); }
+  else { const data = await res.json(); alert(data.error || "Error updating student."); }
 }
 
-// --- CHARTS ---
 async function loadCharts() {
   const container = document.getElementById('charts-container');
-  
   try {
     const res = await fetch('/api/charts/performance');
     const data = await res.json();
-    
     if (Object.keys(data.subject_averages).length === 0) {
       container.innerHTML = '<p class="hint">Add students to see charts</p>';
       return;
     }
-    
     const colors = ['#1a2744', '#f5a623', '#27ae60', '#e74c3c', '#3498db', '#9b59b6', '#1abc9c'];
-    
-    // Subject Averages Chart
     let subjectHtml = '';
     let i = 0;
     const maxAvg = Math.max(...Object.values(data.subject_averages), 10);
@@ -408,43 +434,26 @@ async function loadCharts() {
       `;
       i++;
     }
-    
-    // Top Students
     let topStudentsHtml = '';
     if (data.top_students.length > 0) {
       data.top_students.slice(0, 5).forEach((s, i) => {
-        topStudentsHtml += `
-          <div class="student-list-item">
-            <span>${i+1}. ${s.name}</span>
-            <strong>${s.average}%</strong>
-          </div>
-        `;
+        topStudentsHtml += `<div class="student-list-item"><span>${i+1}. ${s.name}</span><strong>${s.average}%</strong></div>`;
       });
     } else {
       topStudentsHtml = '<p style="font-size:0.8rem;color:var(--muted);">No students yet</p>';
     }
-    
-    // Grade Distribution
     let gradeHtml = '';
     let hasGrades = false;
     for (const [grade, count] of Object.entries(data.grade_distribution)) {
       if (count > 0) hasGrades = true;
-      gradeHtml += `
-        <div class="grade-dist-item">
-          <span>Grade ${grade}</span>
-          <strong>${count} student${count !== 1 ? 's' : ''}</strong>
-        </div>
-      `;
+      gradeHtml += `<div class="grade-dist-item"><span>Grade ${grade}</span><strong>${count} student${count !== 1 ? 's' : ''}</strong></div>`;
     }
     if (!hasGrades) gradeHtml = '<p style="font-size:0.8rem;color:var(--muted);">No grades yet</p>';
-    
     container.innerHTML = `
       <div class="chart-grid">
         <div class="chart-section">
           <h4>📊 Subject Averages</h4>
-          <div class="chart-bar-container">
-            ${subjectHtml}
-          </div>
+          <div class="chart-bar-container">${subjectHtml}</div>
         </div>
         <div class="chart-section">
           <h4>🏆 Top Students</h4>
@@ -463,9 +472,7 @@ async function loadCharts() {
     container.innerHTML = '<p class="hint">Error loading charts. Please refresh.</p>';
   }
 }
-
-// --- ATTENDANCE FUNCTIONS ---
-async function loadAttendanceSubjects() {
+  async function loadAttendanceSubjects() {
   const res = await fetch(`${ATT_API}/subjects`);
   const subjects = await res.json();
   const select = document.getElementById('att-subject');
@@ -473,32 +480,27 @@ async function loadAttendanceSubjects() {
   subjects.forEach(s => {
     select.innerHTML += `<option value="${s}">${s}</option>`;
   });
-  
   if (!document.getElementById('att-date').value) {
     document.getElementById('att-date').value = new Date().toISOString().split('T')[0];
   }
-  
   select.onchange = loadAttendanceStudents;
 }
 
 async function loadAttendanceStudents() {
   const subject = document.getElementById('att-subject').value;
   const container = document.getElementById('attendance-students');
-  
   if (!subject) {
     container.innerHTML = '<p class="hint">Select a subject to load students</p>';
     return;
   }
-  
   const res = await fetch(API);
   const students = await res.json();
   const filtered = students.filter(s => s.subject === subject);
-  
+  filtered.sort((a, b) => a.name.toLowerCase().localeCompare(b.name.toLowerCase()));
   if (filtered.length === 0) {
     container.innerHTML = '<p class="hint">No students found for this subject. Add students first.</p>';
     return;
   }
-  
   container.innerHTML = `
     <div class="attendance-grid">
       ${filtered.map(s => `
@@ -519,33 +521,26 @@ async function saveAttendance() {
   const subject = document.getElementById('att-subject').value;
   const date = document.getElementById('att-date').value;
   const msg = document.getElementById('att-msg');
-  
   if (!subject) {
     msg.className = "error";
     msg.textContent = "Please select a subject";
     return;
   }
-  
   const selects = document.querySelectorAll('.att-status');
   let saved = 0;
-  
   for (const select of selects) {
     const student_name = select.dataset.student;
     const status = select.value;
-    
     const res = await fetch(ATT_API, {
       method: "POST",
       headers: {"Content-Type": "application/json"},
       body: JSON.stringify({student_name, subject, status, date})
     });
-    
     if (res.ok) saved++;
   }
-  
   msg.className = "success";
   msg.textContent = `✅ Attendance saved for ${saved} students!`;
   setTimeout(() => msg.textContent = "", 3000);
-  
   loadAttendanceRecords(date);
   loadAttendanceSummary();
 }
@@ -553,21 +548,17 @@ async function saveAttendance() {
 async function loadAttendanceRecords(dateFilter = null) {
   const tbody = document.getElementById('attendance-table-body');
   let url = ATT_API;
-  
   if (dateFilter && dateFilter !== 'all') {
     url += `?date=${dateFilter}`;
   } else if (document.getElementById('filter-date').value && dateFilter !== 'all') {
     url += `?date=${document.getElementById('filter-date').value}`;
   }
-  
   const res = await fetch(url);
   const records = await res.json();
-  
   if (records.length === 0) {
     tbody.innerHTML = `<tr><td colspan="4"><div class="empty">No attendance records found.</div></td></tr>`;
     return;
   }
-  
   tbody.innerHTML = records.map(r => `
     <tr>
       <td><strong>${r.student_name}</strong></td>
@@ -580,49 +571,58 @@ async function loadAttendanceRecords(dateFilter = null) {
 
 async function loadAttendanceSummary() {
   const container = document.getElementById('attendance-summary');
-  const res = await fetch(`${ATT_API}/summary`);
-  const summary = await res.json();
-  
-  if (summary.length === 0) {
-    container.innerHTML = '<p class="hint">No attendance data yet.</p>';
-    return;
-  }
-  
-  container.innerHTML = `
-    <div style="overflow-x:auto;">
-      <table>
-        <thead>
-          <tr>
-            <th>Student</th>
-            <th>Present</th>
-            <th>Absent</th>
-            <th>Late</th>
-            <th>Total</th>
-            <th>Attendance %</th>
-            <th>Progress</th>
-          </tr>
-        </thead>
-        <tbody>
-          ${summary.map(s => `
+  try {
+    const res = await fetch(`${ATT_API}/summary`);
+    const data = await res.json();
+    let summary = Array.isArray(data) ? data : [];
+    if (summary.length === 0) {
+      container.innerHTML = '<p class="hint">No attendance data yet. Mark attendance first.</p>';
+      return;
+    }
+    summary.sort((a, b) => {
+      const nameA = (a.student_name || '').toLowerCase();
+      const nameB = (b.student_name || '').toLowerCase();
+      return nameA.localeCompare(nameB);
+    });
+    container.innerHTML = `
+      <div style="overflow-x:auto;">
+        <table>
+          <thead>
             <tr>
-              <td><strong>${s.student_name}</strong></td>
-              <td style="color:var(--green);">${s.present}</td>
-              <td style="color:var(--red);">${s.absent}</td>
-              <td style="color:var(--orange);">${s.late}</td>
-              <td>${s.total}</td>
-              <td><strong>${s.percentage}%</strong></td>
-              <td style="min-width:120px;">
-                <div class="progress-bar">
-                  <div class="progress-fill ${s.percentage < 70 ? 'danger' : s.percentage < 85 ? 'warning' : ''}" 
-                       style="width:${s.percentage}%;"></div>
-                </div>
-              </td>
+              <th>Student</th>
+              <th>Present</th>
+              <th>Absent</th>
+              <th>Late</th>
+              <th>Total</th>
+              <th>Attendance %</th>
+              <th>Progress</th>
             </tr>
-          `).join('')}
-        </tbody>
-      </table>
-    </div>
-  `;
+          </thead>
+          <tbody>
+            ${summary.map(s => `
+              <tr>
+                <td><strong>${s.student_name}</strong></td>
+                <td style="color:var(--green);">${s.present}</td>
+                <td style="color:var(--red);">${s.absent}</td>
+                <td style="color:var(--orange);">${s.late}</td>
+                <td>${s.total}</td>
+                <td><strong>${s.percentage}%</strong></td>
+                <td style="min-width:120px;">
+                  <div class="progress-bar">
+                    <div class="progress-fill ${s.percentage < 70 ? 'danger' : s.percentage < 85 ? 'warning' : ''}" 
+                         style="width:${s.percentage}%;"></div>
+                  </div>
+                </td>
+              </tr>
+            `).join('')}
+          </tbody>
+        </table>
+      </div>
+    `;
+  } catch (e) {
+    console.error('Summary error:', e);
+    container.innerHTML = '<p class="hint">Error loading summary. Please refresh.</p>';
+  }
 }
 
 // --- Initialize ---
@@ -631,7 +631,6 @@ loadAttendanceSubjects();
 loadAttendanceSummary();
 loadAttendanceRecords();
 
-// Set default date
 document.getElementById('att-date').value = new Date().toISOString().split('T')[0];
 </script>
 </body>
