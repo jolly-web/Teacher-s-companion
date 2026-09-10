@@ -472,7 +472,7 @@ async function loadCharts() {
     container.innerHTML = '<p class="hint">Error loading charts. Please refresh.</p>';
   }
 }
-  async function loadAttendanceSubjects() {
+async function loadAttendanceSubjects() {
   const res = await fetch(`${ATT_API}/subjects`);
   const subjects = await res.json();
   const select = document.getElementById('att-subject');
