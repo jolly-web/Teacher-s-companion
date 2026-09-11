@@ -549,6 +549,22 @@ try:
     init_db()
 except Exception as e:
     print(f"DB init warning: {e}")
+    @app.route("/forgot-password")
+def forgot_password_page():
+    return render_template("forgot_password.html")
+
+@app.route("/api/forgot-password", methods=["POST"])
+def forgot_password_api():
+    data = request.get_json()
+    username = data.get("username", "").strip()
+    
+    conn = get_db()
+    row = conn.execute("SELECT * FROM teachers WHERE username=?", (username,)).fetchone()
+    conn.close()
+    
+    if row:
+        return jsonify({"success": True})
+    return jsonify({"success": False})
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
