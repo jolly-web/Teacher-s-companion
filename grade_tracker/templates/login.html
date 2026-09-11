@@ -4,37 +4,57 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Teacher's Companion</title>
+  <link rel="manifest" href="/manifest.json">
+  <meta name="theme-color" content="#1a2744">
+  <link rel="apple-touch-icon" href="/apple-touch-icon.png">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"/>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
-    body { font-family: 'Inter', sans-serif; background: #f0f3f9; min-height: 100vh; display: flex; align-items: center; justify-content: center; }
-    .login-box { background: white; padding: 48px; border-radius: 16px; box-shadow: 0 8px 24px rgba(0,0,0,0.08); width: 100%; max-width: 400px; }
+    body { font-family: 'Inter', sans-serif; background: #f0f3f9; min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 20px; }
+    .login-box { background: white; padding: 48px 40px; border-radius: 16px; box-shadow: 0 8px 24px rgba(0,0,0,0.08); width: 100%; max-width: 420px; }
     .login-box h1 { color: #1a2744; font-size: 1.5rem; margin-bottom: 8px; }
     .login-box p { color: #6b7a99; font-size: 0.9rem; margin-bottom: 24px; }
     label { display: block; font-size: 0.75rem; font-weight: 600; color: #6b7a99; margin-bottom: 4px; margin-top: 16px; }
     label:first-of-type { margin-top: 0; }
-    input[type="text"], input[type="password"] { width: 100%; padding: 10px 12px; border: 1px solid #d8dff0; border-radius: 7px; font-family: inherit; font-size: 0.9rem; }
+    .input-wrap { position: relative; }
+    input[type="text"], input[type="password"] { width: 100%; padding: 10px 42px 10px 12px; border: 1px solid #d8dff0; border-radius: 7px; font-family: inherit; font-size: 0.9rem; }
     input:focus { outline: none; border-color: #1a2744; }
+    .eye-btn { position: absolute; right: 8px; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; font-size: 1.1rem; padding: 4px 8px; color: #6b7a99; }
+    .eye-btn:hover { color: #1a2744; }
     .btn-login { width: 100%; padding: 12px; background: #f5a623; border: none; border-radius: 7px; font-family: inherit; font-size: 0.9rem; font-weight: 700; color: #1a2744; cursor: pointer; margin-top: 24px; }
     .btn-login:hover { background: #d4891a; }
-    .register-link { text-align: center; margin-top: 16px; font-size: 0.85rem; color: #6b7a99; }
+    .row-between { display: flex; justify-content: space-between; align-items: center; margin-top: 12px; }
+    .forgot-link { font-size: 0.8rem; color: #1a2744; text-decoration: none; font-weight: 600; }
+    .forgot-link:hover { text-decoration: underline; }
+    .register-link { text-align: center; margin-top: 20px; font-size: 0.85rem; color: #6b7a99; }
     .register-link a { color: #1a2744; font-weight: 600; text-decoration: none; }
     .register-link a:hover { text-decoration: underline; }
-    #login-msg { margin-top: 12px; font-size: 0.8rem; font-weight: 500; min-height: 20px; }
+    #login-msg { margin-top: 12px; font-size: 0.8rem; font-weight: 500; min-height: 20px; text-align: center; }
     #login-msg.error { color: #c0392b; }
     #login-msg.success { color: #2e7d52; }
+    @media (max-width: 500px) {
+      .login-box { padding: 32px 24px; }
+    }
   </style>
 </head>
 <body>
 <div class="login-box">
   <h1>🔐 Login</h1>
-  <p>Enter your credentials to access your grade tracker</p>
+  <p>Enter your credentials to access Teacher's Companion</p>
   
   <label>Username</label>
   <input type="text" id="username" placeholder="Enter your username" />
   
   <label>Password</label>
-  <input type="password" id="password" placeholder="Enter your password" />
+  <div class="input-wrap">
+    <input type="password" id="password" placeholder="Enter your password" />
+    <button type="button" class="eye-btn" onclick="togglePassword()" id="eye-icon">👁️</button>
+  </div>
+  
+  <div class="row-between">
+    <span></span>
+    <a href="/forgot-password" class="forgot-link">Forgot password?</a>
+  </div>
   
   <button class="btn-login" onclick="login()">Login</button>
   <p id="login-msg"></p>
@@ -45,6 +65,18 @@
 </div>
 
 <script>
+function togglePassword() {
+  const pw = document.getElementById("password");
+  const icon = document.getElementById("eye-icon");
+  if (pw.type === "password") {
+    pw.type = "text";
+    icon.textContent = "🙈";
+  } else {
+    pw.type = "password";
+    icon.textContent = "👁️";
+  }
+}
+
 async function login() {
   const username = document.getElementById("username").value.trim();
   const password = document.getElementById("password").value.trim();
@@ -67,14 +99,13 @@ async function login() {
   if (res.ok) {
     msg.className = "success";
     msg.textContent = "✅ Login successful! Redirecting...";
-    setTimeout(() => window.location.href = "/", 1000);
+    setTimeout(() => window.location.href = "/", 800);
   } else {
     msg.className = "error";
     msg.textContent = data.error || "Login failed. Please try again.";
   }
 }
 
-// Allow Enter key to submit
 document.addEventListener("keypress", function(e) {
   if (e.key === "Enter") login();
 });

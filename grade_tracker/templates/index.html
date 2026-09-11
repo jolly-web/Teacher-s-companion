@@ -49,6 +49,8 @@
     #form-msg { margin-top: 8px; font-size: 0.78rem; font-weight: 500; min-height: 16px; }
     #form-msg.error { color: #c0392b; }
     #form-msg.success { color: #2e7d52; }
+    #search-box { padding: 6px 10px; border-radius: 6px; font-size: 0.75rem; border: 1px solid var(--border); font-family: inherit; width: 160px; }
+    #search-box:focus { outline: none; border-color: var(--amber); }
     .table-wrap { overflow-x: auto; }
     table { width: 100%; border-collapse: collapse; font-size: 0.82rem; }
     thead th { background: var(--bg); color: var(--muted); font-weight: 600; font-size: 0.72rem; text-align: left; padding: 10px 12px; border-bottom: 1px solid var(--border); }
@@ -115,7 +117,7 @@
       .btn-add { padding: 14px; font-size: 0.95rem; }
       .btn-primary { padding: 12px 20px; font-size: 0.85rem; }
       .btn-export { padding: 6px 14px; font-size: 0.8rem; }
-      #sort-select { width: 100%; margin-bottom: 6px; padding: 8px; font-size: 0.8rem; }
+      #sort-select, #search-box { width: 100%; margin-bottom: 6px; padding: 8px; font-size: 0.8rem; }
       table { font-size: 0.78rem; }
       thead th { padding: 8px 6px; font-size: 0.68rem; }
       tbody td { padding: 10px 6px; }
@@ -176,7 +178,6 @@
           <option value="ECA">ECA</option>
           <option value="PMC">PMC</option>
           <option value="HGL">HGL</option>
-          <option value="PGM">PGM</option>
         </select>
         <label>Subject</label>
         <input type="text" id="subject" placeholder="e.g. Mathematics"/>
@@ -203,7 +204,7 @@
       <div class="card-header">
         <span>Class Records</span>
         <div style="display: flex; gap: 8px; flex-wrap: wrap; align-items: center;">
-          <input type="text" id="search-box" placeholder="🔍 Search name..." oninput="filterTable()" style="padding: 4px 10px; border-radius: 6px; font-size: 0.75rem; border: 1px solid var(--border); font-family: inherit; width: 150px;">
+          <input type="text" id="search-box" placeholder="🔍 Search name..." oninput="filterTable()">
           <select id="sort-select" onchange="changeSort()" style="padding: 4px 8px; border-radius: 6px; font-size: 0.75rem; border: 1px solid var(--border); font-family: inherit; cursor: pointer;">
             <option value="date">📅 Date Added</option>
             <option value="name_asc">🔤 Name (A-Z)</option>
@@ -332,14 +333,17 @@ function switchTab(tab) {
 }
 
 let currentSort = "date";
-
-let currentSort = "date";
 let allStudents = [];
 
 async function loadStudents() {
   const res = await fetch(`${API}?sort=${currentSort}`);
   allStudents = await res.json();
   renderTable(allStudents);
+}
+
+function changeSort() {
+  currentSort = document.getElementById("sort-select").value;
+  loadStudents();
 }
 
 function filterTable() {
@@ -361,9 +365,8 @@ function renderTable(students) {
   const tbody = document.getElementById("table-body");
   const summary = document.getElementById("summary");
   if (students.length === 0) {
-    tbody.innerHTML = `<tr><td colspan="9"><div class="empty">📋 No students yet. Add one to get started.</div></td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="9"><div class="empty">📋 No students found.</div></td></tr>`;
     summary.style.display = "none";
-    loadCharts();
     return;
   }
   tbody.innerHTML = students.map(s => `
@@ -437,7 +440,7 @@ async function editStudent(id) {
   const classForm = prompt("Enter Form (Form 5 / Form 6):", currentClass === '—' ? '' : currentClass);
   if (classForm === null) return;
   
-  const streamVal = prompt("Enter Combination (PCM, PCB, CBG, HGE, HKL, EGM, ECA, PMC, HGL):", currentStream === '—' ? '' : currentStream);
+  const streamVal = prompt("Enter Combination:", currentStream === '—' ? '' : currentStream);
   if (streamVal === null) return;
   
   const subject = prompt("Enter new subject:", currentSubject);
@@ -682,7 +685,6 @@ loadAttendanceRecords();
 
 document.getElementById('att-date').value = new Date().toISOString().split('T')[0];
 
-// Register service worker
 if ('serviceWorker' in navigator) {
   navigator.serviceWorker.register('/service-worker.js').catch(() => {});
 }
