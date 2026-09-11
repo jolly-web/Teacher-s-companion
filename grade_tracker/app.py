@@ -549,7 +549,8 @@ try:
     init_db()
 except Exception as e:
     print(f"DB init warning: {e}")
-    @app.route("/forgot-password")
+    
+@app.route("/forgot-password")
 def forgot_password_page():
     return render_template("forgot_password.html")
 
