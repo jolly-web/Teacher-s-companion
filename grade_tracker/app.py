@@ -46,6 +46,17 @@ def init_db():
         status TEXT NOT NULL,
         UNIQUE(teacher_id, student_name, subject, date)
     )''')
+    
+    # Auto-migrate: add new columns if missing (for old databases)
+    try:
+        conn.execute("ALTER TABLE students ADD COLUMN class_form TEXT DEFAULT ''")
+    except sqlite3.OperationalError:
+        pass
+    try:
+        conn.execute("ALTER TABLE students ADD COLUMN stream TEXT DEFAULT ''")
+    except sqlite3.OperationalError:
+        pass
+    
     conn.commit()
     conn.close()
 
@@ -533,7 +544,12 @@ def favicon_ico():
 def apple_touch_icon():
     return send_file("templates/apple-touch-icon.png")
 
-if __name__ == "__main__":
+# Initialize database at import time (works on Render + local)
+try:
     init_db()
+except Exception as e:
+    print(f"DB init warning: {e}")
+
+if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
     app.run(host='0.0.0.0', port=port)
