@@ -33,7 +33,9 @@ def init_db():
         teacher_id INTEGER NOT NULL,
         name TEXT NOT NULL,
         subject TEXT NOT NULL,
-        grades TEXT NOT NULL
+        grades TEXT NOT NULL,
+        class_form TEXT DEFAULT '',
+        stream TEXT DEFAULT ''
     )''')
     conn.execute('''CREATE TABLE IF NOT EXISTS attendance (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -130,6 +132,10 @@ def get_students():
         order_clause = "ORDER BY LOWER(name) DESC"
     elif sort_by == "subject":
         order_clause = "ORDER BY LOWER(subject) ASC, LOWER(name) ASC"
+    elif sort_by == "class":
+        order_clause = "ORDER BY class_form ASC, LOWER(name) ASC"
+    elif sort_by == "stream":
+        order_clause = "ORDER BY stream ASC, LOWER(name) ASC"
     else:
         order_clause = "ORDER BY id DESC"
     
@@ -149,7 +155,9 @@ def get_students():
             "grades": grades,
             "average": avg,
             "grade": grade,
-            "remark": remark
+            "remark": remark,
+            "class_form": row["class_form"] if row["class_form"] else "",
+            "stream": row["stream"] if row["stream"] else ""
         })
     
     if sort_by == "avg_desc":
@@ -166,19 +174,22 @@ def add_student():
     name = data.get("name", "").strip()
     subject = data.get("subject", "").strip()
     grades = data.get("grades", [])
+    class_form = data.get("class_form", "").strip()
+    stream = data.get("stream", "").strip()
     if not name or not subject:
         return jsonify({"error": "Name and subject required"}), 400
     grades_str = ",".join(str(g) for g in grades)
     conn = get_db()
-    conn.execute("INSERT INTO students (teacher_id, name, subject, grades) VALUES (?,?,?,?)",
-                 (current_user.id, name, subject, grades_str))
+    conn.execute("INSERT INTO students (teacher_id, name, subject, grades, class_form, stream) VALUES (?,?,?,?,?,?)",
+                 (current_user.id, name, subject, grades_str, class_form, stream))
     conn.commit()
     conn.close()
     avg = calculate_average(grades)
     grade, remark = necta_grade(avg)
     return jsonify({
         "name": name, "subject": subject, "grades": grades,
-        "average": avg, "grade": grade, "remark": remark
+        "average": avg, "grade": grade, "remark": remark,
+        "class_form": class_form, "stream": stream
     }), 201
 
 @app.route("/api/students/<int:student_id>", methods=["DELETE"])
@@ -197,6 +208,8 @@ def edit_student(student_id):
     name = data.get("name", "").strip()
     subject = data.get("subject", "").strip()
     grades = data.get("grades", [])
+    class_form = data.get("class_form", "").strip()
+    stream = data.get("stream", "").strip()
     
     if not name or not subject:
         return jsonify({"error": "Name and subject required"}), 400
@@ -206,9 +219,9 @@ def edit_student(student_id):
     conn = get_db()
     conn.execute("""
         UPDATE students 
-        SET name=?, subject=?, grades=? 
+        SET name=?, subject=?, grades=?, class_form=?, stream=? 
         WHERE id=? AND teacher_id=?
-    """, (name, subject, grades_str, student_id, current_user.id))
+    """, (name, subject, grades_str, class_form, stream, student_id, current_user.id))
     conn.commit()
     conn.close()
     
@@ -222,7 +235,9 @@ def edit_student(student_id):
         "grades": grades,
         "average": avg,
         "grade": grade,
-        "remark": remark
+        "remark": remark,
+        "class_form": class_form,
+        "stream": stream
     })
 @app.route("/api/attendance", methods=["GET"])
 @login_required
@@ -283,15 +298,6 @@ def mark_attendance():
         conn.close()
         return jsonify({"error": str(e)}), 500
 
-@app.route("/api/attendance/students", methods=["GET"])
-@login_required
-def get_attendance_students():
-    conn = get_db()
-    rows = conn.execute("SELECT DISTINCT name FROM students WHERE teacher_id=?", (current_user.id,)).fetchall()
-    conn.close()
-    students = [row["name"] for row in rows]
-    return jsonify(students)
-
 @app.route("/api/attendance/subjects", methods=["GET"])
 @login_required
 def get_attendance_subjects():
@@ -305,7 +311,6 @@ def get_attendance_subjects():
 @login_required
 def get_attendance_summary():
     conn = get_db()
-    
     students = conn.execute("SELECT DISTINCT name FROM students WHERE teacher_id=?", (current_user.id,)).fetchall()
     
     summary = []
@@ -350,13 +355,13 @@ def export_data():
     
     output = StringIO()
     writer = csv.writer(output)
-    writer.writerow(['Name', 'Subject', 'Grades', 'Average', 'Grade', 'Remark'])
+    writer.writerow(['Name', 'Class', 'Stream', 'Subject', 'Grades', 'Average', 'Grade', 'Remark'])
     
     for row in students:
         grades = [float(g) for g in row["grades"].split(",") if g]
         avg = calculate_average(grades)
         grade, remark = necta_grade(avg)
-        writer.writerow([row["name"], row["subject"], row["grades"], avg, grade, remark])
+        writer.writerow([row["name"], row["class_form"] or '', row["stream"] or '', row["subject"], row["grades"], avg, grade, remark])
     
     return Response(
         output.getvalue(), 
@@ -407,37 +412,25 @@ def export_pdf():
     elements = []
     
     styles = getSampleStyleSheet()
-    title_style = ParagraphStyle(
-        'CustomTitle',
-        parent=styles['Heading1'],
-        fontSize=24,
-        textColor=colors.HexColor('#1a2744'),
-        alignment=1,
-        spaceAfter=30
-    )
-    
+    title_style = ParagraphStyle('CustomTitle', parent=styles['Heading1'], fontSize=24,
+        textColor=colors.HexColor('#1a2744'), alignment=1, spaceAfter=30)
     title = Paragraph("Teacher's Companion — Student Report", title_style)
     elements.append(title)
     
-    date_style = ParagraphStyle(
-        'DateStyle',
-        parent=styles['Normal'],
-        fontSize=10,
-        textColor=colors.HexColor('#6b7a99'),
-        alignment=2
-    )
+    date_style = ParagraphStyle('DateStyle', parent=styles['Normal'], fontSize=10,
+        textColor=colors.HexColor('#6b7a99'), alignment=2)
     date_str = f"Generated: {datetime.datetime.now().strftime('%B %d, %Y %I:%M %p')}"
     elements.append(Paragraph(date_str, date_style))
     elements.append(Spacer(1, 20))
     
-    data = [['Name', 'Subject', 'Grades', 'Average', 'Grade', 'Remark']]
+    data = [['Name', 'Class', 'Stream', 'Subject', 'Grades', 'Average', 'Grade', 'Remark']]
     for row in students:
         grades = [float(g) for g in row["grades"].split(",") if g]
         avg = calculate_average(grades)
         grade, remark = necta_grade(avg)
-        data.append([row["name"], row["subject"], row["grades"], str(avg), grade, remark])
+        data.append([row["name"], row["class_form"] or '', row["stream"] or '', row["subject"], row["grades"], str(avg), grade, remark])
     
-    table = Table(data, colWidths=[1.2*inch, 1.2*inch, 1.5*inch, 0.8*inch, 0.6*inch, 1.2*inch])
+    table = Table(data, colWidths=[1.2*inch, 0.7*inch, 0.7*inch, 1.2*inch, 1.3*inch, 0.8*inch, 0.6*inch, 1.1*inch])
     table.setStyle(TableStyle([
         ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#1a2744')),
         ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
@@ -449,37 +442,10 @@ def export_pdf():
         ('GRID', (0, 0), (-1, -1), 1, colors.HexColor('#d8dff0')),
         ('FONTNAME', (0, 1), (-1, -1), 'Helvetica'),
         ('FONTSIZE', (0, 1), (-1, -1), 9),
-        ('ALIGN', (2, 1), (2, -1), 'LEFT'),
         ('ROWBACKGROUNDS', (0, 1), (-1, -1), [colors.white, colors.HexColor('#f7f9fc')]),
     ]))
     
     elements.append(table)
-    elements.append(Spacer(1, 20))
-    
-    if students:
-        all_grades = []
-        for row in students:
-            grades = [float(g) for g in row["grades"].split(",") if g]
-            all_grades.extend(grades)
-        
-        summary_style = ParagraphStyle(
-            'SummaryStyle',
-            parent=styles['Normal'],
-            fontSize=10,
-            textColor=colors.HexColor('#1a2744'),
-            spaceAfter=6
-        )
-        
-        avg_all = sum(all_grades) / len(all_grades) if all_grades else 0
-        summary_text = f"""
-        <b>Summary:</b><br/>
-        Total Students: {len(students)} | 
-        Class Average: {avg_all:.1f}% | 
-        Highest Score: {max(all_grades) if all_grades else 0} | 
-        Lowest Score: {min(all_grades) if all_grades else 0}
-        """
-        elements.append(Paragraph(summary_text, summary_style))
-    
     doc.build(elements)
     buffer.seek(0)
     
@@ -541,8 +507,8 @@ def backup_database():
     
     backup_name = f"backup_{datetime.now().strftime('%Y%m%d_%H%M%S')}.db"
     shutil.copy('grades.db', backup_name)
-    
     return send_file(backup_name, as_attachment=True)
+
 @app.route("/manifest.json")
 def manifest():
     return send_file("templates/manifest.json")

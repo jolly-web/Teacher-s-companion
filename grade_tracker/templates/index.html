@@ -5,9 +5,9 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Teacher's Companion</title>
   <link rel="manifest" href="/manifest.json">
-<meta name="theme-color" content="#1a2744">
-<link rel="icon" href="/favicon.ico">
-<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+  <meta name="theme-color" content="#1a2744">
+  <link rel="icon" href="/favicon.ico">
+  <link rel="apple-touch-icon" href="/apple-touch-icon.png">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"/>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -31,13 +31,13 @@
     .tab-btn.active { color: var(--amber); border-bottom-color: var(--amber); }
     .tab-content { display: none; }
     .tab-content.active { display: block; }
-    main { max-width: 1200px; margin: 32px auto; padding: 0 20px; display: grid; grid-template-columns: 350px 1fr; gap: 24px; align-items: start; }
+    main { max-width: 1300px; margin: 32px auto; padding: 0 20px; display: grid; grid-template-columns: 350px 1fr; gap: 24px; align-items: start; }
     .card { background: var(--white); border-radius: 12px; border: 1px solid var(--border); overflow: hidden; margin-bottom: 24px; }
     .card-header { background: var(--navy); color: var(--white); padding: 14px 18px; font-size: 0.85rem; font-weight: 600; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px; }
     .card-body { padding: 18px; }
     label { display: block; font-size: 0.75rem; font-weight: 600; color: var(--muted); margin-bottom: 4px; margin-top: 12px; }
     label:first-of-type { margin-top: 0; }
-    input[type="text"], input[type="date"], select { width: 100%; padding: 8px 12px; border: 1px solid var(--border); border-radius: 7px; font-family: inherit; font-size: 0.85rem; }
+    input[type="text"], input[type="date"], select { width: 100%; padding: 8px 12px; border: 1px solid var(--border); border-radius: 7px; font-family: inherit; font-size: 0.85rem; background: var(--white); }
     input[type="text"]:focus, input[type="date"]:focus, select:focus { outline: none; border-color: var(--navy); }
     .hint { font-size: 0.72rem; color: var(--muted); margin-top: 3px; }
     .btn-add { width: 100%; padding: 10px; background: var(--amber); border: none; border-radius: 7px; font-family: inherit; font-size: 0.88rem; font-weight: 700; color: var(--navy); cursor: pointer; margin-top: 16px; }
@@ -62,6 +62,8 @@
     .badge-C { background: #fff3cc; color: #7a5a00; }
     .badge-D { background: #ffe8d6; color: #7a3a00; }
     .badge-F { background: #fdd9d7; color: #7a1a17; }
+    .badge-form { background: #e8ecf7; color: #1a2744; }
+    .badge-stream { background: #d4f0e0; color: #1a6e3e; }
     .btn-del { background: none; border: 1px solid var(--border); border-radius: 6px; color: var(--muted); font-size: 0.75rem; padding: 3px 8px; cursor: pointer; font-family: inherit; }
     .btn-del:hover { border-color: #c0392b; color: #c0392b; }
     .btn-edit { background: none; border: 1px solid var(--border); border-radius: 6px; color: var(--muted); font-size: 0.75rem; padding: 3px 8px; cursor: pointer; font-family: inherit; margin-right: 4px; }
@@ -94,7 +96,7 @@
     .student-list-item:last-child { border-bottom: none; }
     .grade-dist-item { display: flex; justify-content: space-between; padding: 4px 0; border-bottom: 1px solid var(--border); font-size: 0.8rem; }
     .grade-dist-item:last-child { border-bottom: none; }
-    @media (max-width: 700px) { 
+    @media (max-width: 900px) { 
       main { grid-template-columns: 1fr; padding: 0 12px; margin: 16px auto; gap: 16px; }
       header { padding: 12px 16px; }
       header h1 { font-size: 0.95rem; }
@@ -121,26 +123,14 @@
       .btn-del, .btn-edit { padding: 6px 10px; font-size: 0.75rem; }
       .summary { padding: 10px 14px; gap: 10px; font-size: 0.72rem; }
       .chart-grid { grid-template-columns: 1fr; gap: 12px; }
-      .chart-section { padding: 12px; }
       .chart-bar-container { height: 100px; gap: 8px; }
       .chart-bar-fill { width: 24px; }
-      .chart-bar-label { font-size: 0.65rem; }
       .attendance-grid { grid-template-columns: 1fr; gap: 10px; }
       .attendance-item { padding: 12px; }
-      .attendance-item select { padding: 10px; font-size: 0.9rem; }
       .filter-row { flex-direction: column; }
       .filter-row input, .filter-row button { width: 100%; min-width: auto; }
       #attendance-summary table { font-size: 0.72rem; }
       #attendance-summary th, #attendance-summary td { padding: 8px 4px; }
-    }
-    @media (max-width: 400px) {
-      header h1 { font-size: 0.85rem; }
-      .tab-btn { padding: 12px 14px; font-size: 0.8rem; }
-      .card-header { font-size: 0.75rem; }
-      table { font-size: 0.72rem; }
-      thead th { font-size: 0.62rem; padding: 6px 4px; }
-      tbody td { padding: 8px 4px; }
-      .btn-del, .btn-edit { padding: 5px 8px; font-size: 0.7rem; }
     }
   </style>
 </head>
@@ -167,16 +157,37 @@
       <div class="card-header">Add Student</div>
       <div class="card-body">
         <label>Full Name</label>
-        <input type="text" id="name" placeholder="e.g. Amina Hassan"/>
+        <input type="text" id="name" placeholder="e.g. Joline Mlay"/>
+        <label>Form</label>
+        <select id="class_form">
+          <option value="">Select Form</option>
+          <option value="Form 5">Form 5</option>
+          <option value="Form 6">Form 6</option>
+        </select>
+        <label>Combination</label>
+        <select id="stream">
+          <option value="">Select Combination</option>
+          <option value="PCM">PCM</option>
+          <option value="PCB">PCB</option>
+          <option value="CBG">CBG</option>
+          <option value="HGE">HGE</option>
+          <option value="HKL">HKL</option>
+          <option value="EGM">EGM</option>
+          <option value="ECA">ECA</option>
+          <option value="PMC">PMC</option>
+          <option value="HGL">HGL</option>
+          <option value="PGM">PGM</option>
+        </select>
         <label>Subject</label>
         <input type="text" id="subject" placeholder="e.g. Mathematics"/>
         <label>Scores</label>
-        <input type="text" id="grades" placeholder="e.g. 85, 90, 78"/>
+        <input type="text" id="grades" placeholder="e.g. 90, 82, 98"/>
         <p class="hint">Enter scores separated by commas (0–100)</p>
         <button class="btn-add" onclick="addStudent()">Add Student</button>
         <p id="form-msg"></p>
       </div>
     </div>
+
     <div class="card">
       <div class="card-header">📊 Performance Charts</div>
       <div class="card-body">
@@ -192,11 +203,14 @@
       <div class="card-header">
         <span>Class Records</span>
         <div style="display: flex; gap: 8px; flex-wrap: wrap; align-items: center;">
+          <input type="text" id="search-box" placeholder="🔍 Search name..." oninput="filterTable()" style="padding: 4px 10px; border-radius: 6px; font-size: 0.75rem; border: 1px solid var(--border); font-family: inherit; width: 150px;">
           <select id="sort-select" onchange="changeSort()" style="padding: 4px 8px; border-radius: 6px; font-size: 0.75rem; border: 1px solid var(--border); font-family: inherit; cursor: pointer;">
             <option value="date">📅 Date Added</option>
             <option value="name_asc">🔤 Name (A-Z)</option>
             <option value="name_desc">🔤 Name (Z-A)</option>
             <option value="subject">📚 Subject</option>
+            <option value="class">📖 Form</option>
+            <option value="stream">🎓 Combination</option>
             <option value="avg_desc">📊 Highest Average</option>
             <option value="avg_asc">📊 Lowest Average</option>
           </select>
@@ -209,6 +223,8 @@
           <thead>
             <tr>
               <th>Name</th>
+              <th>Form</th>
+              <th>Comb</th>
               <th>Subject</th>
               <th>Scores</th>
               <th>Average</th>
@@ -218,7 +234,7 @@
             </tr>
           </thead>
           <tbody id="table-body">
-            <tr><td colspan="7"><div class="empty">No students yet. Add one to get started.</div></td></tr>
+            <tr><td colspan="9"><div class="empty">No students yet. Add one to get started.</div></td></tr>
           </tbody>
         </table>
       </div>
@@ -231,7 +247,6 @@
   </div>
 </main>
 </div>
-
 <!-- ATTENDANCE TAB -->
 <div id="attendance-tab" class="tab-content">
 <main>
@@ -299,6 +314,7 @@
   </div>
 </main>
 </div>
+
 <script>
 const API = "/api/students";
 const ATT_API = "/api/attendance";
@@ -317,22 +333,35 @@ function switchTab(tab) {
 
 let currentSort = "date";
 
+let currentSort = "date";
+let allStudents = [];
+
 async function loadStudents() {
   const res = await fetch(`${API}?sort=${currentSort}`);
-  const students = await res.json();
-  renderTable(students);
+  allStudents = await res.json();
+  renderTable(allStudents);
 }
 
-function changeSort() {
-  currentSort = document.getElementById("sort-select").value;
-  loadStudents();
+function filterTable() {
+  const query = document.getElementById('search-box').value.toLowerCase().trim();
+  if (!query) {
+    renderTable(allStudents);
+    return;
+  }
+  const filtered = allStudents.filter(s => 
+    s.name.toLowerCase().includes(query) ||
+    s.subject.toLowerCase().includes(query) ||
+    (s.class_form && s.class_form.toLowerCase().includes(query)) ||
+    (s.stream && s.stream.toLowerCase().includes(query))
+  );
+  renderTable(filtered);
 }
 
 function renderTable(students) {
   const tbody = document.getElementById("table-body");
   const summary = document.getElementById("summary");
   if (students.length === 0) {
-    tbody.innerHTML = `<tr><td colspan="7"><div class="empty">📋 No students yet. Add one to get started.</div></td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="9"><div class="empty">📋 No students yet. Add one to get started.</div></td></tr>`;
     summary.style.display = "none";
     loadCharts();
     return;
@@ -340,6 +369,8 @@ function renderTable(students) {
   tbody.innerHTML = students.map(s => `
     <tr data-student-id="${s.id}">
       <td><strong class="student-name">${s.name}</strong></td>
+      <td class="student-class">${s.class_form ? '<span class="badge badge-form">' + s.class_form + '</span>' : '—'}</td>
+      <td class="student-stream">${s.stream ? '<span class="badge badge-stream">' + s.stream + '</span>' : '—'}</td>
       <td class="student-subject">${s.subject}</td>
       <td class="student-grades" style="color:#6b7a99; font-size:0.78rem;">${s.grades.join(", ")}</td>
       <td><strong>${s.average}</strong></td>
@@ -362,6 +393,8 @@ function renderTable(students) {
 
 async function addStudent() {
   const name = document.getElementById("name").value.trim();
+  const class_form = document.getElementById("class_form").value.trim();
+  const stream = document.getElementById("stream").value.trim();
   const subject = document.getElementById("subject").value.trim();
   const gradesRaw = document.getElementById("grades").value.trim();
   const msg = document.getElementById("form-msg");
@@ -371,11 +404,11 @@ async function addStudent() {
   const res = await fetch(API, {
     method: "POST",
     headers: {"Content-Type": "application/json"},
-    body: JSON.stringify({name, subject, grades})
+    body: JSON.stringify({name, subject, grades, class_form, stream})
   });
   const data = await res.json();
   if (!res.ok) { msg.className="error"; msg.textContent=data.error||"Error."; return; }
-  ["name","subject","grades"].forEach(id => document.getElementById(id).value="");
+  ["name","class_form","stream","subject","grades"].forEach(id => document.getElementById(id).value="");
   msg.className="success";
   msg.textContent=`${data.name} added — ${data.grade} — ${data.remark}`;
   setTimeout(() => msg.textContent="", 3000);
@@ -392,27 +425,38 @@ async function editStudent(id) {
   const row = document.querySelector(`tr[data-student-id="${id}"]`);
   if (!row) return;
   const currentName = row.querySelector('.student-name').textContent;
+  const currentClass = row.querySelector('.student-class').textContent;
+  const currentStream = row.querySelector('.student-stream').textContent;
   const currentSubject = row.querySelector('.student-subject').textContent;
   const currentGrades = row.querySelector('.student-grades').textContent;
+  
   const name = prompt("Enter new name:", currentName);
   if (name === null) return;
   if (!name.trim()) { alert("Name cannot be empty."); return; }
+  
+  const classForm = prompt("Enter Form (Form 5 / Form 6):", currentClass === '—' ? '' : currentClass);
+  if (classForm === null) return;
+  
+  const streamVal = prompt("Enter Combination (PCM, PCB, CBG, HGE, HKL, EGM, ECA, PMC, HGL):", currentStream === '—' ? '' : currentStream);
+  if (streamVal === null) return;
+  
   const subject = prompt("Enter new subject:", currentSubject);
   if (subject === null) return;
   if (!subject.trim()) { alert("Subject cannot be empty."); return; }
+  
   const gradesRaw = prompt("Enter new grades (comma separated):", currentGrades);
   if (gradesRaw === null) return;
   const grades = gradesRaw.split(",").map(g => parseFloat(g.trim())).filter(g => !isNaN(g));
   if (grades.length === 0) { alert("Please enter valid grades."); return; }
+  
   const res = await fetch(`/api/students/${id}`, {
     method: "PUT",
     headers: {"Content-Type": "application/json"},
-    body: JSON.stringify({name: name.trim(), subject: subject.trim(), grades})
+    body: JSON.stringify({name: name.trim(), subject: subject.trim(), grades, class_form: classForm.trim(), stream: streamVal.trim()})
   });
   if (res.ok) { loadStudents(); }
   else { const data = await res.json(); alert(data.error || "Error updating student."); }
 }
-
 async function loadCharts() {
   const container = document.getElementById('charts-container');
   try {
@@ -476,6 +520,7 @@ async function loadCharts() {
     container.innerHTML = '<p class="hint">Error loading charts. Please refresh.</p>';
   }
 }
+
 async function loadAttendanceSubjects() {
   const res = await fetch(`${ATT_API}/subjects`);
   const subjects = await res.json();
@@ -636,11 +681,11 @@ loadAttendanceSummary();
 loadAttendanceRecords();
 
 document.getElementById('att-date').value = new Date().toISOString().split('T')[0];
-</script>
-<script>
-  if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.register('/service-worker.js').catch(() => {});
-  }
+
+// Register service worker
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('/service-worker.js').catch(() => {});
+}
 </script>
 </body>
 </html>
