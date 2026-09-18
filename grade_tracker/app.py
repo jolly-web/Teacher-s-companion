@@ -17,7 +17,7 @@ login_manager.init_app(app)
 login_manager.login_view = "login"
 
 def get_db():
-    conn = sqlite3.connect("grades.db")
+    conn = sqlite3.connect("grades.db", timeout=30)
     conn.row_factory = sqlite3.Row
     return conn
 
