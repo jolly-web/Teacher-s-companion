@@ -8,6 +8,7 @@
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body { font-family: 'Inter', sans-serif; background: #f0f3f9; min-height: 100vh; display: flex; align-items: center; justify-content: center; }
+    .icon { width: 1em; height: 1em; vertical-align: -0.125em; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
     .register-box { background: white; padding: 48px; border-radius: 16px; box-shadow: 0 8px 24px rgba(0,0,0,0.08); width: 100%; max-width: 400px; }
     .register-box h1 { color: #1a2744; font-size: 1.5rem; margin-bottom: 8px; }
     .register-box p { color: #6b7a99; font-size: 0.9rem; margin-bottom: 24px; }
@@ -26,8 +27,9 @@
   </style>
 </head>
 <body>
+{% include 'icons.html' %}
 <div class="register-box">
-  <h1>📝 Create Account</h1>
+  <h1><svg class="icon"><use href="#i-user-plus"/></svg> Create Account</h1>
   <p>Register to start tracking grades and attendance</p>
   
   <label>Username</label>
@@ -72,7 +74,7 @@ async function register() {
   
   if (res.ok) {
     msg.className = "success";
-    msg.textContent = "✅ Account created! Redirecting to login...";
+    msg.innerHTML = '<svg class="icon"><use href="#i-check-circle"/></svg> Account created! Redirecting to login...';
     setTimeout(() => window.location.href = "/login", 1500);
   } else {
     msg.className = "error";

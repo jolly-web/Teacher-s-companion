@@ -18,6 +18,7 @@
       --green: #27ae60; --red: #e74c3c; --orange: #f39c12;
     }
     body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
+    .icon { width: 1em; height: 1em; vertical-align: -0.125em; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
     header { background: var(--navy); padding: 16px 32px; display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
     header .logo { width: 34px; height: 34px; background: var(--amber); border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 16px; }
     header h1 { color: var(--white); font-size: 1.1rem; font-weight: 600; }
@@ -46,10 +47,20 @@
     .btn-primary:hover { background: var(--navy-light); }
     .btn-export { background: var(--amber); color: var(--navy); padding: 4px 12px; border-radius: 6px; text-decoration: none; font-size: 0.75rem; font-weight: 600; border: none; cursor: pointer; display: inline-block; }
     .btn-export:hover { background: #d4891a; }
+    .btn-export .icon { margin-right: 2px; }
+    .dropdown { position: relative; }
+    .dropdown-toggle { display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; border-radius: 6px; font-size: 0.75rem; border: 1px solid var(--border); background: var(--white); color: var(--text); font-family: inherit; cursor: pointer; }
+    .dropdown-toggle:hover { border-color: var(--navy); }
+    .dropdown-caret { width: 0.8em; height: 0.8em; }
+    .dropdown-menu { display: none; position: absolute; right: 0; top: calc(100% + 4px); background: var(--white); border: 1px solid var(--border); border-radius: 8px; box-shadow: 0 8px 24px rgba(0,0,0,0.12); padding: 6px; z-index: 50; min-width: 200px; }
+    .dropdown-menu.open { display: block; }
+    .dropdown-menu button { display: flex; align-items: center; gap: 8px; width: 100%; text-align: left; background: none; border: none; padding: 8px 10px; border-radius: 6px; font-family: inherit; font-size: 0.78rem; color: var(--text); cursor: pointer; }
+    .dropdown-menu button:hover { background: var(--bg); }
+    .dropdown-menu button.active { background: var(--bg); color: var(--navy); font-weight: 600; }
     #form-msg { margin-top: 8px; font-size: 0.78rem; font-weight: 500; min-height: 16px; }
     #form-msg.error { color: #c0392b; }
     #form-msg.success { color: #2e7d52; }
-    #search-box { padding: 6px 10px; border-radius: 6px; font-size: 0.75rem; border: 1px solid var(--border); font-family: inherit; width: 160px; }
+    #search-box { padding: 6px 10px 6px 28px; border-radius: 6px; font-size: 0.75rem; border: 1px solid var(--border); font-family: inherit; width: 180px; background: var(--white) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%236b7a99' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='11' cy='11' r='8'/%3E%3Cline x1='21' y1='21' x2='16.65' y2='16.65'/%3E%3C/svg%3E") no-repeat 8px center / 14px 14px;
     #search-box:focus { outline: none; border-color: var(--amber); }
     .table-wrap { overflow-x: auto; }
     table { width: 100%; border-collapse: collapse; font-size: 0.82rem; }
@@ -117,7 +128,9 @@
       .btn-add { padding: 14px; font-size: 0.95rem; }
       .btn-primary { padding: 12px 20px; font-size: 0.85rem; }
       .btn-export { padding: 6px 14px; font-size: 0.8rem; }
-      #sort-select, #search-box { width: 100%; margin-bottom: 6px; padding: 8px; font-size: 0.8rem; }
+      #search-box { width: 100%; margin-bottom: 6px; padding: 8px 8px 8px 28px; font-size: 0.8rem; }
+      .dropdown, .dropdown-toggle { width: 100%; margin-bottom: 6px; }
+      .dropdown-toggle { justify-content: space-between; }
       table { font-size: 0.78rem; }
       thead th { padding: 8px 6px; font-size: 0.68rem; }
       tbody td { padding: 10px 6px; }
@@ -137,8 +150,9 @@
   </style>
 </head>
 <body>
+{% include 'icons.html' %}
 <header>
-  <div class="logo">📊</div>
+  <div class="logo"><svg class="icon"><use href="#i-bar-chart"/></svg></div>
   <h1>Teacher's Companion</h1>
   <div class="right">
     <span class="teacher">Logged in as <span>{{ username }}</span></span>
@@ -147,8 +161,8 @@
 </header>
 
 <div class="tab-nav">
-  <button class="tab-btn active" onclick="switchTab('grades')">📝 Grades</button>
-  <button class="tab-btn" onclick="switchTab('attendance')">✅ Attendance</button>
+  <button class="tab-btn active" onclick="switchTab('grades')"><svg class="icon"><use href="#i-clipboard"/></svg> Grades</button>
+  <button class="tab-btn" onclick="switchTab('attendance')"><svg class="icon"><use href="#i-check-square"/></svg> Attendance</button>
 </div>
 
 <!-- GRADES TAB -->
@@ -190,7 +204,7 @@
     </div>
 
     <div class="card">
-      <div class="card-header">📊 Performance Charts</div>
+      <div class="card-header"><svg class="icon"><use href="#i-bar-chart"/></svg> Performance Charts</div>
       <div class="card-body">
         <div id="charts-container">
           <p class="hint">Add students to see charts</p>
@@ -204,19 +218,27 @@
       <div class="card-header">
         <span>Class Records</span>
         <div style="display: flex; gap: 8px; flex-wrap: wrap; align-items: center;">
-          <input type="text" id="search-box" placeholder="🔍 Search name..." oninput="filterTable()">
-          <select id="sort-select" onchange="changeSort()" style="padding: 4px 8px; border-radius: 6px; font-size: 0.75rem; border: 1px solid var(--border); font-family: inherit; cursor: pointer;">
-            <option value="date">📅 Date Added</option>
-            <option value="name_asc">🔤 Name (A-Z)</option>
-            <option value="name_desc">🔤 Name (Z-A)</option>
-            <option value="subject">📚 Subject</option>
-            <option value="class">📖 Form</option>
-            <option value="stream">🎓 Combination</option>
-            <option value="avg_desc">📊 Highest Average</option>
-            <option value="avg_asc">📊 Lowest Average</option>
-          </select>
-          <a href="/api/export/pdf" class="btn-export" target="_blank">📄 PDF</a>
-          <a href="/api/export" class="btn-export">📊 Excel</a>
+          <input type="text" id="search-box" placeholder="Search name..." oninput="filterTable()">
+          <div class="dropdown" id="sort-dropdown">
+            <button type="button" class="dropdown-toggle" onclick="toggleSortMenu(event)">
+              <svg class="icon"><use href="#i-sort"/></svg>
+              <span id="sort-label">Date Added</span>
+              <svg class="icon dropdown-caret"><use href="#i-chevron-down"/></svg>
+            </button>
+            <div class="dropdown-menu" id="sort-menu">
+              <button type="button" data-value="date" data-label="Date Added" class="active" onclick="selectSort(this)"><svg class="icon"><use href="#i-calendar"/></svg> Date Added</button>
+              <button type="button" data-value="name_asc" data-label="Name (A-Z)" onclick="selectSort(this)"><svg class="icon"><use href="#i-type"/></svg> Name (A-Z)</button>
+              <button type="button" data-value="name_desc" data-label="Name (Z-A)" onclick="selectSort(this)"><svg class="icon"><use href="#i-type"/></svg> Name (Z-A)</button>
+              <button type="button" data-value="subject" data-label="Subject" onclick="selectSort(this)"><svg class="icon"><use href="#i-book"/></svg> Subject</button>
+              <button type="button" data-value="class" data-label="Form" onclick="selectSort(this)"><svg class="icon"><use href="#i-book-open"/></svg> Form</button>
+              <button type="button" data-value="stream" data-label="Combination" onclick="selectSort(this)"><svg class="icon"><use href="#i-award"/></svg> Combination</button>
+              <button type="button" data-value="avg_desc" data-label="Highest Average" onclick="selectSort(this)"><svg class="icon"><use href="#i-bar-chart"/></svg> Highest Average</button>
+              <button type="button" data-value="avg_asc" data-label="Lowest Average" onclick="selectSort(this)"><svg class="icon"><use href="#i-bar-chart"/></svg> Lowest Average</button>
+            </div>
+          </div>
+          <input type="hidden" id="sort-select" value="date">
+          <a href="/api/export/pdf" class="btn-export" target="_blank"><svg class="icon"><use href="#i-file-text"/></svg> PDF</a>
+          <a href="/api/export" class="btn-export"><svg class="icon"><use href="#i-table"/></svg> Excel</a>
         </div>
       </div>
       <div class="table-wrap">
@@ -269,7 +291,7 @@
       <div id="attendance-students" style="margin-top: 12px;">
         <p class="hint">Select a subject to load students</p>
       </div>
-      <button class="btn-add" onclick="saveAttendance()">✅ Save Attendance</button>
+      <button class="btn-add" onclick="saveAttendance()"><svg class="icon"><use href="#i-check-square"/></svg> Save Attendance</button>
       <p id="att-msg"></p>
     </div>
   </div>
@@ -278,13 +300,13 @@
     <div class="card">
       <div class="card-header">
         <span>Attendance Records</span>
-        <a href="/api/export/attendance" class="btn-export">📊 Excel</a>
+        <a href="/api/export/attendance" class="btn-export"><svg class="icon"><use href="#i-table"/></svg> Excel</a>
       </div>
       <div class="card-body">
         <div class="filter-row">
           <input type="date" id="filter-date" />
-          <button class="btn-primary" onclick="loadAttendanceRecords()">🔍 Filter</button>
-          <button class="btn-primary" onclick="loadAttendanceRecords('all')">📋 Show All</button>
+          <button class="btn-primary" onclick="loadAttendanceRecords()"><svg class="icon"><use href="#i-filter"/></svg> Filter</button>
+          <button class="btn-primary" onclick="loadAttendanceRecords('all')"><svg class="icon"><use href="#i-list"/></svg> Show All</button>
         </div>
         <div class="table-wrap">
           <table>
@@ -346,6 +368,25 @@ function changeSort() {
   loadStudents();
 }
 
+function toggleSortMenu(e) {
+  e.stopPropagation();
+  document.getElementById('sort-menu').classList.toggle('open');
+}
+
+function selectSort(btn) {
+  document.getElementById('sort-select').value = btn.dataset.value;
+  document.getElementById('sort-label').textContent = btn.dataset.label;
+  document.querySelectorAll('#sort-menu button').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('sort-menu').classList.remove('open');
+  changeSort();
+}
+
+document.addEventListener('click', function(e) {
+  const dd = document.getElementById('sort-dropdown');
+  if (dd && !dd.contains(e.target)) document.getElementById('sort-menu').classList.remove('open');
+});
+
 function filterTable() {
   const query = document.getElementById('search-box').value.toLowerCase().trim();
   if (!query) {
@@ -365,7 +406,7 @@ function renderTable(students) {
   const tbody = document.getElementById("table-body");
   const summary = document.getElementById("summary");
   if (students.length === 0) {
-    tbody.innerHTML = `<tr><td colspan="9"><div class="empty">📋 No students found.</div></td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="9"><div class="empty"><svg class="icon"><use href="#i-clipboard"/></svg> No students found.</div></td></tr>`;
     summary.style.display = "none";
     return;
   }
@@ -380,8 +421,8 @@ function renderTable(students) {
       <td><span class="badge badge-${s.grade}">${s.grade}</span></td>
       <td>${s.remark}</td>
       <td>
-        <button class="btn-edit" onclick="editStudent(${s.id})">✏️</button>
-        <button class="btn-del" onclick="deleteStudent(${s.id})">🗑️</button>
+        <button class="btn-edit" title="Edit" onclick="editStudent(${s.id})"><svg class="icon"><use href="#i-edit"/></svg></button>
+        <button class="btn-del" title="Delete" onclick="deleteStudent(${s.id})"><svg class="icon"><use href="#i-trash"/></svg></button>
       </td>
     </tr>
   `).join("");
@@ -503,15 +544,15 @@ async function loadCharts() {
     container.innerHTML = `
       <div class="chart-grid">
         <div class="chart-section">
-          <h4>📊 Subject Averages</h4>
+          <h4><svg class="icon"><use href="#i-bar-chart"/></svg> Subject Averages</h4>
           <div class="chart-bar-container">${subjectHtml}</div>
         </div>
         <div class="chart-section">
-          <h4>🏆 Top Students</h4>
+          <h4><svg class="icon"><use href="#i-star"/></svg> Top Students</h4>
           ${topStudentsHtml}
         </div>
         <div class="chart-section" style="grid-column: 1 / -1;">
-          <h4>📈 Grade Distribution</h4>
+          <h4><svg class="icon"><use href="#i-trending-up"/></svg> Grade Distribution</h4>
           <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(100px, 1fr)); gap: 8px;">
             ${gradeHtml}
           </div>
@@ -591,7 +632,7 @@ async function saveAttendance() {
     if (res.ok) saved++;
   }
   msg.className = "success";
-  msg.textContent = `✅ Attendance saved for ${saved} students!`;
+  msg.innerHTML = `<svg class="icon"><use href="#i-check-circle"/></svg> Attendance saved for ${saved} students!`;
   setTimeout(() => msg.textContent = "", 3000);
   loadAttendanceRecords(date);
   loadAttendanceSummary();
